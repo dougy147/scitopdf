@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# rechercher un doi sur sci-hub
+
+if ! [ -f ~/downloads/scihub ]; then
+	mkdir ~/downloads/scihub
+fi
+
+# regrouper tous les arguments
+# regrouper les arguments dans une liste
+args=("$@")
+# nombre d'arguments
+ELEMENTS=${#args[@]}
+# echo chaque element dans une liste
+# for loop
+for (( i=0;i<$ELEMENTS;i++)); do
+    echo -n ${args[${i}]}"\ "
+    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
+done
+
+concatener=$(echo $concatener | sed 's/\\//g')
+
+site=$(curl -LH "" "https://whereisscihub.now.sh/" | grep -io https://sci-hub... | awk 'NR==1{print $1; exit}')
+if [[ 'ping $(echo $site | cut -c9-100) | grep -io inconnu' = "inconnu" ]]; then
+	echo "Sci-Hub est introuvable."
+	$(exec $BROWSER "https://whereisscihub.now.sh/")
+elif ! [[ $(echo "$concatener") = "" ]]; then
+	echo "$concatener"
+	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
+	if [[ $(echo $(curl -s "https://search.crossref.org/?q=$recherche") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
+		echo "Le titre a été trouvé sur Crossref"
+		echo "maintenant il faut trouver le DOI ..."
+		doi=$(echo $(curl -s "https://search.crossref.org/?q=$recherche" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
+		if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
+			echo ""
+			echo "Le doi pour "$concatener" a été trouvé : $doi"
+			echo ""
+			#doi_epure=$(echo $doi | sed 's/.*[\:\ ]//')
+			doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
+		fi
+	#doi=$(echo "$1")
+	#doi=$(echo "$doi" | sed 's/doi\://g')
+		$(exec $BROWSER $site/$doi)
+		#echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//'
+		cd ~/downloads/scihub && wget $(echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//') && cd -
+	#	echo wget $site/$doi | grep -i "http://.*.pdf"
+	fi
+else
+	$BROWSER "$site"
+fi
+
+
+#sci='https://sci-hub.se/'
+
+site=$(echo $site/)
+echo $site$doi
+
+#if [[ $(echo $1 | tail -c4) == "pdf" ]]; then
+#	doi_article=$(doi "$1")
+#	echo $doi_article
+#	$(exec $BROWSER "$site$doi_article")
+#else
+#	$(exec $BROWSER "$site$1")
+#	echo "fail"
+#fi
+
+exit
+
