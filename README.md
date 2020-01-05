@@ -37,7 +37,7 @@ sh scitopdf title of the article you are looking for
 
 # Examples
 
-Here's the result on `scitopdf` with a (free and open access) article.
+Here's the result of `scitopdf` with a (free and open access) article.
 
 ![](images/example1.png)
 
