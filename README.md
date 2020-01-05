@@ -1,6 +1,6 @@
 # scitopdf
 
-`scitopdf` search for articles from a given title (not too rigid on orthograph) on sci-hub, and it downloads them in a `$HOME/downloads/scihub` folder. The interest of `scitopdf` is that it locates automatically sci-hub website thanks to http://whereisscihub.now.sh/ .
+`scitopdf` search for articles from given titles (not too rigid on orthograph) on sci-hub, and it downloads them in a folder (`$HOME/downloads/scihub`). The interest of `scitopdf` is that it locates automatically sci-hub website thanks to http://whereisscihub.now.sh/ , it is not as rigid on orthograph and syntax as sci-hub's search, it downloads automatically the articles.
 
 ## Getting Started
 
