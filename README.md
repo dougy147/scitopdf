@@ -1,22 +1,25 @@
 # scitopdf
 
-`scitopdf` searches for articles from given titles on sci-hub, and downloads it in a folder (`$HOME/downloads/scihub`). The interest of `scitopdf` is that it locates automatically sci-hub website thanks to http://whereisscihub.now.sh/ , it is not as rigid on orthograph and syntax as sci-hub's search, it downloads automatically the articles.
+`scitopdf` looks for articles from given titles on sci-hub, and downloads them in a destination folder (by default : `$HOME/downloads/scihub`). The interest of `scitopdf` is (1) it automatically locates sci-hub's website with http://sci-hub.now.sh/, (2) it is not as rigid on orthograph and syntax as sci-hub's search, (3) it downloads automatically the articles.
 
-## Installing
+## Getting Started
+
+### Installing
 
 To try `scitopdf`, you can clone this repository. For instance :
 
 ```
+cd ~
 git clone https://github.com/dougy147/scitopdf
 ```
 
 Then, open your terminal and go to the folder you just cloned :
 
 ```
-cd scitopdf
+cd ~/scitopdf
 ```
 
-And launch it with :
+And launch it like this :
 
 ```
 sh scitopdf "title of the article you are looking for"
