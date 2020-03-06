@@ -35,5 +35,5 @@ sh scitopdf title of the article you are looking for
 
 Here's the result of `scitopdf` with a (free and open access) article.
 
-![](images/example1.png)
+![](images/example.png)
 
