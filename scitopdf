@@ -2,32 +2,36 @@
 #
 # télécharger un pdf depuis sci-hub
 
+#########################################
+# Folder in which article is downloaded #
+#########################################
 destination=$HOME/downloads/scihub
 
 if ! [ -d $destination ]; then
 	mkdir $destination
 fi
 
-# regrouper tous les arguments
-# regrouper les arguments dans une liste
-args=("$@")
-# nombre d'arguments
-ELEMENTS=${#args[@]}
-# echo chaque element dans une liste
-# for loop
-for (( i=0;i<$ELEMENTS;i++)); do
-    #echo -n ${args[${i}]}"\ "
-    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
-done
-
-concatener=$(echo $concatener | sed 's/\\//g')
-
+###############
+# Functions : #
+####################################
+# Fonction de localisation du site #
+####################################
+localiser_site() {
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub...)
 site=$(echo "$site" | grep -io https://sci-hub... | tail -n 1)
 if [[ 'ping $(echo $site | cut -c9-100) | grep -io inconnu' = "inconnu" ]]; then
 	echo "Sci-Hub introuvable."
 	$(exec $BROWSER "https://sci-hub.now.sh/")
-elif ! [[ $(echo "$concatener") = "" ]]; then
+	exit 1
+fi
+}
+
+###################################################
+# Fonction de recherche et téléchragement article #
+###################################################
+recherche_article() {
+if ! [[ $(echo "$concatener") = "" ]]; then
+	#$(echo "$concatener" | sed 's/\///')
 	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	if [[ $(echo $(curl -s "https://search.crossref.org/?q=$recherche") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
 		echo "Title found on Crossref."
@@ -40,18 +44,10 @@ elif ! [[ $(echo "$concatener") = "" ]]; then
 			doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
 		fi
 
+	#echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//'
 	lien_telechargement=$(echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//')
-	if [[ $(echo $lien_telechargement) = "" ]]; then
-		echo "Unable to automatically download article."
-		echo "Do you want to look on Sci-Hub ? (y/n)"
-		read reponse
-			if [[ $(echo $reponse | grep -io y) = "y" ]]; then
-				exec $BROWSER $site/$doi
-			else
-				exit
-			fi
-	fi
 	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
+	#echo $nom_fichier
 	cd $destination
 	echo "Downloading '$nom_fichier' to '$destination'."
 	curl -s "$lien_telechargement" --output "$nom_fichier"
@@ -60,6 +56,35 @@ elif ! [[ $(echo "$concatener") = "" ]]; then
 else
 	$BROWSER "$site"
 fi
+}
+
+####################################################
+
+
+# Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
+if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
+	localiser_site
+	while read line; do concatener=$(echo $line);  recherche_article "$line"; done < $2
+	exit 1
+else
+# If no option specified, then every word following scitopdf is considered as the title (note that it can contain name of author, year, etc. with no problem)
+	# regrouper tous les arguments
+	# regrouper les arguments dans une liste
+	args=("$@")
+	# nombre d'arguments
+	ELEMENTS=${#args[@]}
+	# echo chaque element dans une liste
+	# for loop
+	for (( i=0;i<$ELEMENTS;i++)); do
+	    #echo -n ${args[${i}]}"\ "
+	    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
+	done
+fi
+
+concatener=$(echo $concatener | sed 's/\\//g')
+
+localiser_site
+recherche_article
 
 exit
 
