@@ -2,6 +2,8 @@
 
 `scitopdf` looks for articles from given titles on sci-hub, and downloads them in a destination folder (by default : `$HOME/downloads/scihub`). The interest of `scitopdf` is (1) it automatically locates sci-hub's website with http://sci-hub.now.sh/, (2) it is not as rigid on orthograph and syntax as sci-hub's search, (3) it downloads automatically the articles.
 
+If you have a list of articles (say you pasted a bibliography in a .txt file), `scitopdf` can process each line and download each reference with the option `-l` (or `--list`). For example : `scitopdf --list list_of_articles.txt`.
+
 ## Getting Started
 
 ### Installing

@@ -60,7 +60,7 @@ fi
 
 ####################################################
 
-
+# Option to download articles from a list
 # Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	localiser_site
