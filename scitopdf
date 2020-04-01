@@ -18,7 +18,7 @@ fi
 ####################################
 localiser_site() {
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub...)
-site=$(echo "$site" | grep -io https://sci-hub... | tail -n 1)
+site=$(echo "$site" | grep -io https://sci-hub... | head -n 3 | tail -n 1)
 if [[ 'ping $(echo $site | cut -c9-100) | grep -io inconnu' = "inconnu" ]]; then
 	echo "Sci-Hub introuvable."
 	$(exec $BROWSER "https://sci-hub.now.sh/")
