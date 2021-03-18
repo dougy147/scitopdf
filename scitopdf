@@ -34,12 +34,13 @@ fi
 ###################################################
 recherche_article() {
 if ! [[ $(echo "$concatener") = "" ]]; then
-	#$(echo "$concatener" | sed 's/\///')
 	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
-	if [[ $(echo $(curl -s "https://search.crossref.org/?q=$recherche") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
+	echo "RECHERCHE : $recherche"
+	#if [[ $(echo $(curl -s "https://search.crossref.org/?q=$recherche") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
+	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" "https://search.crossref.org/?q=$recherche&from_ui=yes") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
 		echo "Title found on Crossref."
 		echo "Looking for DOI."
-		doi=$(echo $(curl -s "https://search.crossref.org/?q=$recherche" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
+		doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
 		if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
 			echo ""
 			echo "DOI for "$concatener" found : $doi"
@@ -90,3 +91,6 @@ localiser_site
 recherche_article
 
 exit
+
+
+# script modifié le 18 mars 2021
