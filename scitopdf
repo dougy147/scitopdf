@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# télécharger un pdf depuis sci-hub
+# Download articles from Sci-Hub
 
 #########################################
 # Folder in which article is downloaded #
@@ -11,32 +11,31 @@ if ! [ -d $destination ]; then
 	mkdir $destination
 fi
 
-###############
-# Functions : #
-####################################
-# Fonction de localisation du site #
-####################################
+##############
+# Functions  #
+########################
+# Find Sci-Hub website #
+########################
 localiser_site() {
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub...)
 site=$(echo "$site" | grep -i biglink | tail -n 1)
 site=$(echo "$site" | grep -io https://sci-hub... | tail -n 1)
-if [[ 'ping $(echo $site | cut -c9-100) | grep -io inconnu' = "inconnu" ]]; then
+if [[ 'ping $(echo $site | cut -c9-100) | grep -io inconnu' = "inconnu" ]]; then #à modifier pour fonctionnement qqsoit la langue
 	echo "Sci-Hub introuvable."
 	$(exec $BROWSER "https://sci-hub.now.sh/")
 	exit 1
 else
-	echo Sci-hub is here : $site
+	echo Sci-Hub is here : $site
 fi
 }
 
-###################################################
-# Fonction de recherche et téléchragement article #
-###################################################
+#####################
+# Find and download #
+#####################
 recherche_article() {
 if ! [[ $(echo "$concatener") = "" ]]; then
 	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	echo "RECHERCHE : $recherche"
-	#if [[ $(echo $(curl -s "https://search.crossref.org/?q=$recherche") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
 	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" "https://search.crossref.org/?q=$recherche&from_ui=yes") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
 		echo "Title found on Crossref."
 		echo "Looking for DOI."
@@ -47,11 +46,8 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 			echo ""
 			doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
 		fi
-
-	#echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//'
 	lien_telechargement=$(echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//')
 	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
-	#echo $nom_fichier
 	cd $destination
 	echo "Downloading '$nom_fichier' to '$destination'."
 	curl -s "$lien_telechargement" --output "$nom_fichier"
@@ -62,25 +58,23 @@ else
 fi
 }
 
-####################################################
-
-# Option to download articles from a list
-# Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
+###########################################
+# Option to download articles from a list #
+###########################################
+# Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) containing several articles' titles
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	localiser_site
 	while read line; do concatener=$(echo $line);  recherche_article "$line"; done < $2
 	exit 1
 else
+
 # If no option specified, then every word following scitopdf is considered as the title (note that it can contain name of author, year, etc. with no problem)
-	# regrouper tous les arguments
-	# regrouper les arguments dans une liste
+	# regrouper tous les arguments dans une liste :
 	args=("$@")
 	# nombre d'arguments
 	ELEMENTS=${#args[@]}
-	# echo chaque element dans une liste
-	# for loop
+	# pour chaque élément de la liste d'arguments, les concatener
 	for (( i=0;i<$ELEMENTS;i++)); do
-	    #echo -n ${args[${i}]}"\ "
 	    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
 	done
 fi
@@ -93,4 +87,4 @@ recherche_article
 exit
 
 
-# script modifié le 18 mars 2021
+# script modifié le 4 avril 2021
