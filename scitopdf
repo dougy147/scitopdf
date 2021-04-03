@@ -71,7 +71,7 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 		curl -s "$lien_telechargement" --output "$nom_fichier"
 		notify-send "$nom_fichier téléchargé."
 		echo "Done."
-		zathura "$destination/$nom_fichier"
+		setsid zathura "$destination/$nom_fichier"
 	fi
 	fi
 else
