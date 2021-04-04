@@ -6,27 +6,14 @@ If you have a list of articles (say you pasted a bibliography in a .txt file), `
 
 ## Getting Started
 
-### Installing
-
-To try `scitopdf`, you can clone this repository. For instance :
+### Installation
 
 ```
 git clone https://github.com/dougy147/scitopdf
+cd scitopdf
+sudo make install
 ```
-
-Then, open your terminal and go to the folder you just cloned :
-
-```
-cd ~/scitopdf
-```
-
-And launch it like this :
-
-```
-sh ./scitopdf title of the article you are looking for
-```
-
-Export the script to your scripts' path to launch it easily :
+Now simply launch `scitopdf` like this :
 
 ```
 scitopdf title of the article you are looking for
