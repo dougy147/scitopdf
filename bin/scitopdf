@@ -111,20 +111,42 @@ fi
 # Start script #
 ################
 
-concatener=$(echo $concatener | sed 's/\\//g')
-
-if [[ $(cat /tmp/sci_adress 2> /dev/null) == "" ]]; then
-	rm /tmp/sci_adress 2> /dev/null
+if [[ $(echo $concatener | grep -io http) == "http" ]]; then
 	localiser_site
-fi
-
-if [ -f /tmp/sci_adress ]; then
-	site=$(echo $(cat /tmp/sci_adress))
-	recherche_article
+	concatener=$(echo $concatener | sed "s/'//g" | sed 's/\ //g' | sed 's/\\//g')
+	lien_telechargement=$(echo $(curl -s $site/$concatener) | grep -io "<iframe\ src\ .*\.pdf" | sed 's/<iframe\ src\ =\ \"//g')
+	if [[ $(echo $lien_telechargement | cut -c1-2) == "//" ]]; then
+		lien_telechargement=$(echo $lien_telechargement | sed 's/\/\//https:\/\//g')
+	fi
+	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
+	cd $destination
+	if [[ $(echo $nom_fichier) == "" ]]; then
+		notify-send "Pdf non téléchargé."
+		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
+		exit;
+	else
+		echo "Downloading '$nom_fichier' to '$destination'."
+		curl -s "$lien_telechargement" --output "$nom_fichier"
+		notify-send "$nom_fichier téléchargé."
+		echo "Done."
+		setsid $READER "$destination/$nom_fichier"
+	fi
 else
-	localiser_site
-	site=$(echo $(cat /tmp/sci_adress))
-	recherche_article
+	concatener=$(echo $concatener | sed 's/\\//g')
+
+	if [[ $(cat /tmp/sci_adress 2> /dev/null) == "" ]]; then
+		rm /tmp/sci_adress 2> /dev/null
+		localiser_site
+	fi
+
+	if [ -f /tmp/sci_adress ]; then
+		site=$(echo $(cat /tmp/sci_adress))
+		recherche_article
+	else
+		localiser_site
+		site=$(echo $(cat /tmp/sci_adress))
+		recherche_article
+	fi
 fi
 
 
