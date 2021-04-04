@@ -25,3 +25,9 @@ And launch it like this :
 ```
 sh ./scitopdf title of the article you are looking for
 ```
+
+Export the script to your scripts' path to launch it easily :
+
+```
+scitopdf title of the article you are looking for
+```
