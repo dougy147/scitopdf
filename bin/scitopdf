@@ -16,7 +16,7 @@ fi
 ############################
 statut_connexion=$(echo $(ping -q -w1 -c1 google.com &>/dev/null && echo online || echo offline))
 if [ $(echo $statut_connexion) = "offline" ]; then
-	echo Pas de connexion internet.
+	echo No internet connexion.
 	exit 1
 fi
 
@@ -75,7 +75,11 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 	fi
 	fi
 else
-	$BROWSER "$site"
+	#$BROWSER "$site"
+	# New modifications :
+	echo "Insert title, authors' name, year and/or journal : "
+	read concatener
+	recherche_article
 fi
 }
 
