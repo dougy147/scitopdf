@@ -18,3 +18,7 @@ Now simply launch `scitopdf` like this :
 ```
 scitopdf title/adress of the article you are looking for
 ```
+or with a list as argument :
+```
+scitopdf --list file_containing_multiple_references.txt
+```
