@@ -24,7 +24,7 @@ scitopdf title of the article you are looking for
 
 `scitopdf` also accepts DOI, http addresses, authors' names, year of publication and journals.
 
-or with the option `-l` or `--list` :
+To download multiple papers from a list, use the option `-l` or `--list` :
 ```
 scitopdf --list file_containing_multiple_references.txt
 ```
