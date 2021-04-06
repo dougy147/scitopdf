@@ -37,7 +37,7 @@ if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) =
 	#$(exec $BROWSER "https://sci-hub.now.sh/")
 	exit 1
 else
-	echo $site > /tmp/sci_adress
+	echo $site > /tmp/sci_address
 	echo Sci-hub is here : $site
 fi
 }
@@ -77,7 +77,7 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 else
 	#$BROWSER "$site"
 	# New modifications :
-	echo "Insert title, authors' name, year and/or journal : "
+	echo "Paste title (or DOI, http address, authors' name, year, journal ...) : "
 	read concatener
 	recherche_article
 fi
@@ -134,17 +134,17 @@ if [[ $(echo $concatener | grep -io http) == "http" ]]; then
 else
 	concatener=$(echo $concatener | sed 's/\\//g')
 
-	if [[ $(cat /tmp/sci_adress 2> /dev/null) == "" ]]; then
-		rm /tmp/sci_adress 2> /dev/null
+	if [[ $(cat /tmp/sci_address 2> /dev/null) == "" ]]; then
+		rm /tmp/sci_address 2> /dev/null
 		localiser_site
 	fi
 
-	if [ -f /tmp/sci_adress ]; then
-		site=$(echo $(cat /tmp/sci_adress))
+	if [ -f /tmp/sci_address ]; then
+		site=$(echo $(cat /tmp/sci_address))
 		recherche_article
 	else
 		localiser_site
-		site=$(echo $(cat /tmp/sci_adress))
+		site=$(echo $(cat /tmp/sci_address))
 		recherche_article
 	fi
 fi
