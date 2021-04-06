@@ -5,8 +5,8 @@
 The interest of `scitopdf` is :
 - it automatically locates Sci-Hub's website via http://sci-hub.now.sh/
 - it is not as rigid on orthograph and syntax as Sci-Hub's search engine (because it leverages crossref.org's one)
-- it automatically downloads and open the article
-- it can download multiples documents from a list
+- it automatically downloads and opens the article
+- it can download multiple documents from a list of references
 	* If you have a list of articles (say you pasted a bibliography in a .txt file), `scitopdf` can process each line and download each reference with the option `-l` (or `--list`). For example : `scitopdf --list list_of_references.txt`.
 
 ## Installation
