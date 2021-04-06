@@ -3,7 +3,7 @@
 `scitopdf` automatically downloads articles from Sci-Hub, given a title (and/or authors names, year of publication, journal, DOI, etc.) or an http address to a default repertory (`$HOME/downloads/scihub`).
 
 The interest of `scitopdf` is :
-- it automatically locates Sci-Hub's website via http://sci-hub.now.sh/
+- it automatically locates Sci-Hub's website (via sci-hub.now.sh)
 - it is not as rigid on orthograph and syntax as Sci-Hub's search engine (because it leverages crossref.org's one)
 - it automatically downloads and opens the article
 - it can download multiple documents from a list of references
