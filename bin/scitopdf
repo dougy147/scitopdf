@@ -20,6 +20,8 @@ if [ $(echo $statut_connexion) = "offline" ]; then
 	exit 1
 fi
 
+automatically_open="yes"
+
 ##############
 # Functions  #
 ##############
@@ -71,7 +73,9 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 		curl -s "$lien_telechargement" --output "$nom_fichier"
 		notify-send "$nom_fichier téléchargé."
 		echo "Done."
-		setsid $READER "$destination/$nom_fichier"
+		if [ $(echo $automatically_open) = "yes" ]; then
+			setsid $READER "$destination/$nom_fichier"
+		fi
 	fi
 	fi
 else
@@ -88,6 +92,7 @@ fi
 ###########################################
 # Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
+	automatically_open="no"
 	localiser_site
 	while read line; do concatener=$(echo $line);  recherche_article "$line"; done < $2
 	exit 1
@@ -129,7 +134,9 @@ if [[ $(echo $concatener | grep -io http) == "http" ]]; then
 		curl -s "$lien_telechargement" --output "$nom_fichier"
 		notify-send "$nom_fichier téléchargé."
 		echo "Done."
-		setsid $READER "$destination/$nom_fichier"
+		if [ $(echo $automatically_open) = "yes" ]; then
+			setsid $READER "$destination/$nom_fichier"
+		fi
 	fi
 else
 	concatener=$(echo $concatener | sed 's/\\//g')
@@ -152,4 +159,4 @@ fi
 
 exit
 
-# script modifié le 4 avril 2021
+# script modifié le 6 avril 2021
