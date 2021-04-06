@@ -50,7 +50,7 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	notify-send "Scitopdf : recherche '$(echo $recherche | sed 's/+/\ /g')'"
 	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
-		echo "Title found on Crossref. Looking for DOI."
+		echo "Paper found on Crossref. Looking for DOI."
 		doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
 		if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
 			echo ""
