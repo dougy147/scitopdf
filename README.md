@@ -14,9 +14,17 @@ cd scitopdf
 sudo make install
 ```
 Now simply launch `scitopdf` like this :
-
+```
+scitopdf
+```
+or directly with title, year, authors, DOI, address, etc. :
 ```
 scitopdf title of the article you are looking for
 ```
 
 `scitopdf` also accepts DOI, http addresses, authors' names, year of publication and journals.
+
+or with the option `-l` or `--list` :
+```
+scitopdf --list file_containing_multiple_references.txt
+```
