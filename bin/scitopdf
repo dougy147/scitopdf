@@ -20,6 +20,9 @@ if [ $(echo $statut_connexion) = "offline" ]; then
 	exit 1
 fi
 
+#########################################
+# Open PDF automatically after download #
+#########################################
 automatically_open="yes"
 
 ##############
@@ -32,11 +35,9 @@ automatically_open="yes"
 localiser_site() {
 echo "Looking for website..."
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | tail -n 1 | grep -io https://sci-hub... | tail -n 1)
-
 echo "Checking connexion to : $site"
 if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
-	echo "Sci-Hub introuvable. Check https://sci-hub.now.sh/"
-	#$(exec $BROWSER "https://sci-hub.now.sh/")
+	echo "Sci-Hub's website not found. Check https://sci-hub.now.sh/"
 	exit 1
 else
 	echo $site > /tmp/sci_address
@@ -44,23 +45,16 @@ else
 fi
 }
 
-	############################
-	# Look for DOI and article #
-	############################
+	####################
+	# Look for article #
+	####################
 recherche_article() {
 if ! [[ $(echo "$concatener") = "" ]]; then
 	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	notify-send "Scitopdf : recherche '$(echo $recherche | sed 's/+/\ /g')'"
 	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
-		echo "Paper found on Crossref. Looking for DOI."
-		doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
-		if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
-			echo ""
-			echo "DOI for "$concatener" found : $doi"
-			echo ""
-			doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
-		fi
-
+		recherche_doi
+	fi
 	lien_telechargement=$(echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//')
 	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
 	cd $destination
@@ -77,13 +71,30 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 			setsid $READER "$destination/$nom_fichier"
 		fi
 	fi
-	fi
 else
-	#$BROWSER "$site"
-	# New modifications :
-	echo "Paste title (or DOI, http address, authors' name, year, journal ...) : "
+	echo "Paste informations (title, or DOI, http address, authors' names, year, journal ...) : "
 	read concatener
 	recherche_article
+fi
+}
+
+	############################
+	# Look for DOI on Crossref #
+	############################
+recherche_doi() {
+echo "Paper found on Crossref. Looking for DOI."
+doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
+if ! [[ $(echo $doi) = "" ]]; then
+	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
+		echo ""
+		echo "DOI for "$concatener" found : $doi"
+		echo ""
+		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
+	fi
+	echo "DOI for "$concatener" found : $doi"
+else
+	echo "DOI not found."
+	exit 1;
 fi
 }
 
