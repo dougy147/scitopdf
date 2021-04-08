@@ -45,6 +45,26 @@ else
 fi
 }
 
+	############################
+	# Look for DOI on Crossref #
+	############################
+recherche_doi() {
+echo "Paper found on Crossref. Looking for DOI."
+doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
+if ! [[ $(echo $doi) = "" ]]; then
+	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
+		echo ""
+		echo "DOI : $doi"
+		echo ""
+		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
+	fi
+	echo "DOI : $doi"
+else
+	echo "DOI not found."
+	exit 1;
+fi
+}
+
 	####################
 	# Look for article #
 	####################
@@ -59,17 +79,23 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $nom_fichier) == "" ]]; then
-		notify-send "Pdf non téléchargé."
-		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
-		exit;
+		if [[ $(echo $(curl -s $site/$doi) | grep -io "article not found") = "article not found" ]]; then
+			notify-send "Paper not available on Sci-Hub."
+			echo "Paper not available on Sci-Hub."
+		else
+			notify-send "Impossible to get the paper."
+			echo "Paper not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
+			exit 1;
+		fi
 	else
 		echo "Downloading '$nom_fichier' to '$destination'."
-		curl -s "$lien_telechargement" --output "$nom_fichier"
+		curl "$lien_telechargement" --output "$nom_fichier" --progress-bar
 		notify-send "$nom_fichier téléchargé."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$nom_fichier"
 		fi
+		exit 1;
 	fi
 else
 	echo "Paste informations (title, or DOI, http address, authors' names, year, journal ...) : "
@@ -78,25 +104,6 @@ else
 fi
 }
 
-	############################
-	# Look for DOI on Crossref #
-	############################
-recherche_doi() {
-echo "Paper found on Crossref. Looking for DOI."
-doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
-if ! [[ $(echo $doi) = "" ]]; then
-	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
-		echo ""
-		echo "DOI for "$concatener" found : $doi"
-		echo ""
-		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
-	fi
-	echo "DOI for "$concatener" found : $doi"
-else
-	echo "DOI not found."
-	exit 1;
-fi
-}
 
 ###########################################
 # Option to download articles from a list #
