@@ -82,7 +82,7 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$nom_fichier"
 		fi
-		exit 1;
+#		exit 1;
 	fi
 else
 	echo "Paste informations (title, or DOI, http address, authors' names, year, journal ...) : "
@@ -92,6 +92,10 @@ fi
 }
 
 
+
+################
+# Start script #
+################
 # Option to download articles from a list #
 # Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
@@ -99,21 +103,18 @@ if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	localiser_site
 	while read line; do concatener=$(echo $line);  recherche_article "$line"; done < $2
 	exit 1
+else
+	# If no option specified, then every word following scitopdf is considered as the title
+	# regrouper les arguments dans une liste
+	args=("$@")
+	# nombre d'arguments
+	ELEMENTS=${#args[@]}
+	# echo chaque element dans une liste
+	for (( i=0;i<$ELEMENTS;i++)); do
+	    #echo -n ${args[${i}]}"\ "
+	    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
+	done
 fi
-
-################
-# Start script #
-################
-# If no option specified, then every word following scitopdf is considered as the title
-# regrouper les arguments dans une liste
-args=("$@")
-# nombre d'arguments
-ELEMENTS=${#args[@]}
-# echo chaque element dans une liste
-for (( i=0;i<$ELEMENTS;i++)); do
-    #echo -n ${args[${i}]}"\ "
-    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
-done
 
 if [[ $(echo $concatener | grep -io http) == "http" ]]; then
 	localiser_site
