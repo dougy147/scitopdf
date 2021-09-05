@@ -10,8 +10,8 @@ if ! [ -d $destination ]; then
 fi
 
 # Check internet connexion #
-statut_connexion=$(echo $(ping -q -w1 -c1 google.com &>/dev/null && echo online || echo offline))
-if [ $(echo $statut_connexion) = "offline" ]; then
+connexion_status=$(echo $(ping -q -w1 -c1 google.com &>/dev/null && echo online || echo offline))
+if [ $(echo $connexion_status) = "offline" ]; then
 	echo No internet connexion.
 	exit 1
 fi
@@ -23,9 +23,9 @@ automatically_open="yes"
 # Functions  #
 ##############
 	# Find Sci-Hub website #
-localiser_site() {
+locate_website() {
 echo "Looking for website..."
-site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | tail -n 1 | grep -io https://sci-hub... | tail -n 1)
+site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
 echo "Checking connexion to : $site"
 if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
 	echo "Sci-Hub's website not found. Check https://sci-hub.now.sh/"
@@ -37,9 +37,9 @@ fi
 }
 
 	# Look for DOI on Crossref #
-recherche_doi() {
+doi_search() {
 echo "Paper found on Crossref. Looking for DOI."
-doi=$(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1))
+doi=$(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 if ! [[ $(echo $doi) = "" ]]; then
 	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
 		echo ""
@@ -54,18 +54,24 @@ else
 fi
 }
 
-	# Look for article #
-recherche_article() {
-if ! [[ $(echo "$concatener") = "" ]]; then
-	recherche=$(echo $concatener | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
-	notify-send "Scitopdf : recherche '$(echo $recherche | sed 's/+/\ /g')'"
-	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$recherche&from_ui=yes") | grep -io "$concatener" | head -n 1) = "$concatener" ]]; then
-		recherche_doi
+	# Look for paper #
+paper_search() {
+if ! [[ $(echo "$concatenate") = "" ]]; then
+	#user_search=$(echo $concatenate | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
+	user_search=$(echo $concatenate | sed "s/'/\ /" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
+	notify-send "Scitopdf looking for '$(echo $user_search | sed 's/+/\ /g')'"
+	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes") | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+		doi_search
 	fi
-	lien_telechargement=$(echo $(curl -s $site/$doi) | grep -io "<iframe\ src\ =\ \"https.*\.pdf" | sed 's/<iframe\ src\ \=\ \"//')
-	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
+	download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+	if [[ $download_link = "" ]]; then
+		echo "Empty download link."
+		exit
+	fi
+	echo "Download link : $download_link"
+	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
-	if [[ $(echo $nom_fichier) == "" ]]; then
+	if [[ $(echo $filename) == "" ]]; then
 		if [[ $(echo $(curl -s $site/$doi) | grep -io "article not found") = "article not found" ]]; then
 			notify-send "Paper not available on Sci-Hub."
 			echo "Paper not available on Sci-Hub."
@@ -75,22 +81,21 @@ if ! [[ $(echo "$concatener") = "" ]]; then
 			exit 1;
 		fi
 	else
-		echo "Downloading '$nom_fichier' to '$destination'."
-		curl "$lien_telechargement" --output "$nom_fichier" --progress-bar
-		notify-send "$nom_fichier téléchargé."
+		echo "Downloading '$filename' to '$destination'."
+		curl "$download_link" --output "$filename" --progress-bar
+		notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $READER "$destination/$nom_fichier"
+			setsid $READER "$destination/$filename"
 		fi
 #		exit 1;
 	fi
 else
 	echo "Paste informations (title, or DOI, http address, authors' names, year, journal ...) : "
-	read concatener
-	recherche_article
+	read concatenate
+	paper_search
 fi
 }
-
 
 
 ################
@@ -100,8 +105,8 @@ fi
 # Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	automatically_open="no"
-	localiser_site
-	while read line; do concatener=$(echo $line);  recherche_article "$line"; done < $2
+	locate_website
+	while read line; do concatenate=$(echo $line);  paper_search "$line"; done < $2
 	exit 1
 else
 	# If no option specified, then every word following scitopdf is considered as the title
@@ -112,51 +117,51 @@ else
 	# echo chaque element dans une liste
 	for (( i=0;i<$ELEMENTS;i++)); do
 	    #echo -n ${args[${i}]}"\ "
-	    concatener=$(echo $concatener" ")$(echo -n ${args[${i}]}"\ ")
+	    concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
 	done
 fi
 
-if [[ $(echo $concatener | grep -io http) == "http" ]]; then
-	localiser_site
-	concatener=$(echo $concatener | sed "s/'//g" | sed 's/\ //g' | sed 's/\\//g')
-	lien_telechargement=$(echo $(curl -s $site/$concatener) | grep -io "<iframe\ src\ .*\.pdf" | sed 's/<iframe\ src\ =\ \"//g')
-	if [[ $(echo $lien_telechargement | cut -c1-2) == "//" ]]; then
-		lien_telechargement=$(echo $lien_telechargement | sed 's/\/\//https:\/\//g')
+if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
+	locate_website
+	concatenate=$(echo $concatenate | sed "s/'//g" | sed 's/\ //g' | sed 's/\\//g')
+	download_link=$(echo $(curl -s $site/$concatenate) | grep -io "http.*\.pdf" | head -n 1)
+	if [[ $(echo $download_link | cut -c1-2) == "//" ]]; then
+		download_link=$(echo $download_link | sed 's/\/\//https:\/\//g')
 	fi
-	nom_fichier=$(echo $lien_telechargement | sed 's:.*/::')
+	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
-	if [[ $(echo $nom_fichier) == "" ]]; then
-		notify-send "Pdf non téléchargé."
+	if [[ $(echo $filename) == "" ]]; then
+		notify-send "Article not downloaded. Check Sci-Hub access."
 		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
 		exit;
 	else
-		echo "Downloading '$nom_fichier' to '$destination'."
-		curl -s "$lien_telechargement" --output "$nom_fichier"
-		notify-send "$nom_fichier téléchargé."
+		echo "Downloading '$filename' to '$destination'."
+		curl "$download_link" --output "$filename" --progress-bar
+		notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $READER "$destination/$nom_fichier"
+			setsid $READER "$destination/$filename"
 		fi
 	fi
 else
-	concatener=$(echo $concatener | sed 's/\\//g')
+	concatenate=$(echo $concatenate | sed 's/\\//g')
 
 	if [[ $(cat /tmp/sci_address 2> /dev/null) == "" ]]; then
 		rm /tmp/sci_address 2> /dev/null
-		localiser_site
+		locate_website
 	fi
 
 	if [ -f /tmp/sci_address ]; then
 		site=$(echo $(cat /tmp/sci_address))
-		recherche_article
+		paper_search
 	else
-		localiser_site
+		locate_website
 		site=$(echo $(cat /tmp/sci_address))
-		recherche_article
+		paper_search
 	fi
 fi
 
 
 exit
 
-# script modifié le 6 avril 2021
+# last modif : 05 sept 21
