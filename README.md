@@ -23,7 +23,7 @@ scitopdf
 ```
 or directly with arguments (title, year, authors, DOI, http address, journal, etc.) :
 ```
-scitopdf title of the article you are looking for
+scitopdf "some paper you're looking for"
 ```
 
 To download multiple papers from a list, use the option `-l` or `--list` :
