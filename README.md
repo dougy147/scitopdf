@@ -12,6 +12,7 @@ The interest of `scitopdf` is :
 ## Installation
 
 ```
+cd /tmp
 git clone https://github.com/dougy147/scitopdf
 cd scitopdf
 sudo make install
