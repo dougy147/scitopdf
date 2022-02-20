@@ -1,30 +1,29 @@
 #!/bin/bash
 #
-# Download articles from Sci-Hub
 
-# Folder in which article is downloaded #
+# Folder in which papers are downloaded #
 destination=$HOME/downloads/scihub
 
 if ! [ -d $destination ]; then
 	mkdir $destination
 fi
 
-# Check internet connexion #
-connexion_status=$(echo $(ping -q -w1 -c1 google.com &>/dev/null && echo online || echo offline))
+# Check internet connexion to avoid being stucked # TODO
+connexion_status=$(echo $(ping -q -w1 -c1 1.1.1.1 &>/dev/null && echo online || echo offline))
 if [ $(echo $connexion_status) = "offline" ]; then
 	echo No internet connexion.
 	exit 1
 fi
 
-# Open PDF automatically after download #
+# Automatically open PDF after download #
 automatically_open="yes"
 
 ##############
 # Functions  #
 ##############
-	# Find Sci-Hub website #
+	# Find website #
 locate_website() {
-echo "Looking for website..."
+echo "Looking for Sci-Hub http address..."
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
 echo "Checking connexion to : $site"
 if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
@@ -36,9 +35,9 @@ else
 fi
 }
 
-	# Look for DOI on Crossref #
+	# Looking for DOI on Crossref #
 doi_search() {
-echo "Paper found on Crossref. Looking for DOI."
+echo "Paper found on Crossref. Extracting DOI."
 doi=$(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 if ! [[ $(echo $doi) = "" ]]; then
 	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
@@ -54,12 +53,12 @@ else
 fi
 }
 
-	# Look for paper #
+	# Looking for paper #
 paper_search() {
 if ! [[ $(echo "$concatenate") = "" ]]; then
 	#user_search=$(echo $concatenate | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	user_search=$(echo $concatenate | sed "s/'/\ /" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
-	notify-send "Scitopdf looking for '$(echo $user_search | sed 's/+/\ /g')'"
+	#notify-send "Scitopdf looking for '$(echo $user_search | sed 's/+/\ /g')'"
 	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes") | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
 		doi_search
 	fi
@@ -73,17 +72,17 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
 		if [[ $(echo $(curl -s $site/$doi) | grep -io "article not found") = "article not found" ]]; then
-			notify-send "Paper not available on Sci-Hub."
+			#notify-send "Paper not available on Sci-Hub."
 			echo "Paper not available on Sci-Hub."
 		else
-			notify-send "Paper not found."
+			#notify-send "Paper not found."
 			echo "Paper not found.\\nPlease check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
 			exit 1;
 		fi
 	else
 		echo "Downloading '$filename' to '$destination'."
 		curl "$download_link" --output "$filename" --progress-bar
-		notify-send "$filename downloaded."
+		#notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
@@ -131,13 +130,13 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
-		notify-send "Article not downloaded. Check Sci-Hub access."
+		#notify-send "Article not downloaded. Check Sci-Hub access."
 		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
 		exit;
 	else
 		echo "Downloading '$filename' to '$destination'."
 		curl "$download_link" --output "$filename" --progress-bar
-		notify-send "$filename downloaded."
+		#notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
