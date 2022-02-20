@@ -1,6 +1,6 @@
 # scitopdf
 
-`scitopdf` downloads papers from Sci-Hub database given a title (and/or authors, year, journal, DOI, or http address) to a default directory (`$HOME/downloads/scihub`).
+`scitopdf` downloads papers from Sci-Hub database given a title (and/or authors, year, journal, DOI, or http address) to a default directory (`$HOME/downloads/scitopdf`).
 
 `scitopdf` :
 - automatically locates Sci-Hub's website (via sci-hub.now.sh)

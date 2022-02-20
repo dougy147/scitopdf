@@ -2,7 +2,7 @@
 #
 
 # Folder in which papers are downloaded #
-destination=$HOME/downloads/scihub
+destination=$HOME/downloads/scitopdf
 
 if ! [ -d $destination ]; then
 	mkdir $destination
@@ -10,13 +10,22 @@ fi
 
 # Check internet connexion to avoid being stucked # TODO
 connexion_status=$(echo $(ping -q -w1 -c1 1.1.1.1 &>/dev/null && echo online || echo offline))
-if [ $(echo $connexion_status) = "offline" ]; then
+if [[ $(echo $connexion_status) = "offline" ]]; then
 	echo No internet connexion.
 	exit 1
 fi
 
 # Automatically open PDF after download #
 automatically_open="yes"
+
+# Check if a READER is defined on system # TODO
+if [[ $(echo $READER) == "" ]]; then
+	echo "No PDF reader found. You can set a $READER environment variable."
+	#Try with a lightweight pdf reader (zathura)
+	reader="zathura"
+else
+	reader=$READER
+fi
 
 ##############
 # Functions  #
@@ -85,7 +94,8 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		#notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $READER "$destination/$filename"
+			echo $reader
+			setsid $reader "$destination/$filename"
 		fi
 #		exit 1;
 	fi
