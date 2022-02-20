@@ -20,7 +20,7 @@ automatically_open="yes"
 
 # Check if a READER is defined on system # TODO
 if [[ $(echo $READER) == "" ]]; then
-	echo "No PDF reader found. You can set a $READER environment variable."
+	echo "No PDF reader found. You can set a \$READER environment variable."
 	#Try with a lightweight pdf reader (zathura)
 	reader="zathura"
 else
@@ -94,7 +94,6 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		#notify-send "$filename downloaded."
 		echo "Done."
 		if [ $(echo $automatically_open) = "yes" ]; then
-			echo $reader
 			setsid $reader "$destination/$filename"
 		fi
 #		exit 1;
