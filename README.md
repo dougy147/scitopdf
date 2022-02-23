@@ -1,7 +1,7 @@
 # scitopdf
 
 `scitopdf` is a bash script written to download papers from Sci-Hub's database (give it a title and/or authors, year, journal, DOI, URL) to a default directory (`$HOME/downloads/scitopdf`).
-Once downloaded, the paper is automatically opened (don't forget to set a `$READER` environment variable or to install zathura). This is particularly useful when the script is combined with a keyboard shortcut with the clipboard as the argument (e.g. `scitopdf $(xclip -o)`)
+Once downloaded, the paper is automatically opened. This is particularly useful when the script is combined with a keyboard shortcut with the clipboard as the argument (e.g. `scitopdf $(xclip -o)`. Don't forget to set a `$READER` environment variable or to install zathura.
 
 `scitopdf` :
 - automatically locates Sci-Hub's URL (via sci-hub.now.sh)
