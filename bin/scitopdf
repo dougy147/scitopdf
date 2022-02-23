@@ -20,7 +20,7 @@ automatically_open="yes"
 
 # Check if a READER is defined on system # TODO
 if [[ $(echo $READER) == "" ]]; then
-	echo "No PDF reader found. You can set a \$READER environment variable."
+	#echo "No PDF reader found. You can set a \$READER environment variable."
 	#Try with a lightweight pdf reader (zathura)
 	reader="zathura"
 else
@@ -99,7 +99,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 #		exit 1;
 	fi
 else
-	echo "Paste informations (title, or DOI, http address, authors' names, year, journal ...) : "
+	echo "Paper you're looking for (title/DOI/url/authors/year/journal...) : "
 	read concatenate
 	paper_search
 fi
@@ -124,7 +124,6 @@ else
 	ELEMENTS=${#args[@]}
 	# echo chaque element dans une liste
 	for (( i=0;i<$ELEMENTS;i++)); do
-	    #echo -n ${args[${i}]}"\ "
 	    concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
 	done
 fi
