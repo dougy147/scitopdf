@@ -8,10 +8,10 @@ if ! [ -d $destination ]; then
 	mkdir $destination
 fi
 
-# Check internet connexion to avoid being stucked # TODO
+# Check internet connection to avoid being stucked # TODO
 connexion_status=$(echo $(ping -q -w1 -c1 1.1.1.1 &>/dev/null && echo online || echo offline))
 if [[ $(echo $connexion_status) = "offline" ]]; then
-	echo No internet connexion.
+	echo No internet connection.
 	exit 1
 fi
 
@@ -32,15 +32,15 @@ fi
 ##############
 	# Find website #
 locate_website() {
-echo "Looking for Sci-Hub http address..."
+echo "Looking for Sci-Hub url..."
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
-echo "Checking connexion to : $site"
+#echo "Checking connection to : $site"
 if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
 	echo "Sci-Hub's website not found. Check https://sci-hub.now.sh/"
 	exit 1;
 else
 	echo $site > /tmp/sci_address
-	echo Sci-hub is here : $site
+	echo Sci-Hub is available here : $site
 fi
 }
 
@@ -89,7 +89,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 			exit 1;
 		fi
 	else
-		echo "Downloading '$filename' to '$destination'."
+		echo "Downloading '$filename'."
 		curl "$download_link" --output "$filename" --progress-bar
 		#notify-send "$filename downloaded."
 		echo "Done."
@@ -142,7 +142,7 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
 		exit;
 	else
-		echo "Downloading '$filename' to '$destination'."
+		echo "Downloading '$filename'."
 		curl "$download_link" --output "$filename" --progress-bar
 		#notify-send "$filename downloaded."
 		echo "Done."
