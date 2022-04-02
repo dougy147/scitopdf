@@ -1,6 +1,6 @@
 .TH SCITOPDF 1 scitopdf
 .SH NAME
-scitopdf \- shell script to auto-download papers from Sci-Hub
+scitopdf \- bash script to fetch, download and auto-open papers from Sci-Hub
 .SH SYNOPSIS
 .B scitopdf
 [ -l
@@ -11,7 +11,7 @@ scitopdf \- shell script to auto-download papers from Sci-Hub
 ]
 .SH DESCRIPTION
 .B scitopdf
-automatically downloads pdfs of papers from Sci-Hub (website automatically found) based either on their title, http address, authors, year of publication, or DOI.
+automatically downloads papers from Sci-Hub (website automatically found) based either on their title, url, author, date of publication (leveraging Crossref's search engine), or DOI.
 .SH COMMANDS
 .TP
 .B -l

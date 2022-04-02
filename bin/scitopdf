@@ -1,105 +1,159 @@
 #!/bin/bash
 #
 
-# Folder in which papers are downloaded #
+# SCITOPDF
+# DOWNLOAD ARTICLES FROM SCI-HUB
+
+# Downloads folder
 destination=$HOME/downloads/scitopdf
 
-if ! [ -d $destination ]; then
-	mkdir $destination
-fi
+[ ! -d $destination ] && mkdir $destination
 
-# Check internet connection to avoid being stucked # TODO
-connexion_status=$(echo $(ping -q -w1 -c1 1.1.1.1 &>/dev/null && echo online || echo offline))
-if [[ $(echo $connexion_status) = "offline" ]]; then
-	echo No internet connection.
-	exit 1
-fi
+# Check internet connexion #
+[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
 
-# Automatically open PDF after download #
+# Check $READER variable (pdf reader)
+[[ -v READER ]] || echo "No PDF reader.\\nTry setting a \$READER variable, or install zathura."
+
+# Open PDF automatically after download #
 automatically_open="yes"
 
-# Check if a READER is defined on system # TODO
-if [[ $(echo $READER) == "" ]]; then
-	#echo "No PDF reader found. You can set a \$READER environment variable."
-	#Try with a lightweight pdf reader (zathura)
-	reader="zathura"
-else
-	reader=$READER
-fi
+# Temporary file with different headers avoid(ish)ing blocation
+headers_file=/tmp/scitopdf_headers
+[ ! -f "$headers_file" ] && touch "$headers_file"
+
+# Timeout for Crossref : seems useless right now (03/2022)
+# requests_timeout=6
 
 ##############
 # Functions  #
 ##############
-	# Find website #
+	#________________#
+	# Change headers #
+	#----------------#
+change_headers() {
+	sed -i '1d' "$headers_file"
+	if [[ $(cat "$headers_file") == "" ]]; then
+		echo "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" >> "$headers_file"
+		echo "Mozilla/5.0 (iPad; CPU OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4" >> "$headers_file"
+		echo "Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; KFTT Build/IML74K) AppleWebKit/537.36 (KHTML, like Gecko) Silk/3.68 like Chrome/39.0.2171.93 Safari/537.36" >> "$headers_file"
+		echo "Mozilla/5.0 (Windows NT 6.3; Win64; x64; Trident/7.0; rv:11.0) like Gecko" >> "$headers_file"
+		echo "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:40.0) Gecko/20100101 Firefox/40.0" >> "$headers_file"
+		echo "Mozilla/5.0 (X11; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0" >> "$headers_file"
+		echo "Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0" >> "$headers_file"
+		echo "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1" >> "$headers_file"
+		echo "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53 BingPreview/1.0b" >> "$headers_file"
+		echo "Mozilla/5.0 (Windows NT 6.3; Win64; x64; Trident/7.0; MAARJS; rv:11.0) like Gecko" >> "$headers_file"
+		echo "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E)" >> "$headers_file"
+		echo "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" >> "$headers_file"
+	fi
+	headers=$(echo $(cat "$headers_file" | head -n 1))
+	#echo "Current headers : $headers"
+}
+	#______________#
+	# Find Sci-Hub #
+	#--------------#
 locate_website() {
-echo "Looking for Sci-Hub url..."
+echo $(tput bold)"Looking for website..."$(tput sgr0)
 site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
-#echo "Checking connection to : $site"
 if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
-	echo "Sci-Hub's website not found. Check https://sci-hub.now.sh/"
+	echo "Sci-Hub not found. \\nCheck https://sci-hub.now.sh\\nFor manual website setting :\\n-insert Sci-Hub's url in the file '/tmp/sci_address'"
 	exit 1;
 else
-	echo $site > /tmp/sci_address
-	echo Sci-Hub is available here : $site
+	echo $site > "/tmp/sci_address"
+	echo Sci-hub is here : $site
 fi
 }
-
-	# Looking for DOI on Crossref #
+	#__________________________#
+	# Look for DOI on Crossref #
+	#--------------------------#
 doi_search() {
-echo "Paper found on Crossref. Extracting DOI."
-doi=$(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
+change_headers
 if ! [[ $(echo $doi) = "" ]]; then
 	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
-		echo ""
-		echo "DOI : $doi"
-		echo ""
 		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
+		echo $(tput bold)"DOI : $(tput sgr0)$doi"
 	fi
-	echo "DOI : $doi"
+	echo $(tput bold)"DOI : $(tput sgr0)$doi"
 else
-	echo "DOI not found."
+	echo $(tput setaf 1)"DOI not found."$(tput sgr0)
+	notify-send "scitopdf" "DOI not found."
 	exit 1;
 fi
 }
-
-	# Looking for paper #
+	#________________#
+	# Look for paper #
+	#----------------#
 paper_search() {
 if ! [[ $(echo "$concatenate") = "" ]]; then
-	#user_search=$(echo $concatenate | sed "s/'/\ /g" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
+	change_headers
 	user_search=$(echo $concatenate | sed "s/'/\ /" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
-	#notify-send "Scitopdf looking for '$(echo $user_search | sed 's/+/\ /g')'"
-	if [[ $(echo $(curl -A "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0" -s "https://search.crossref.org/?q=$user_search&from_ui=yes") | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+	#notify-send "scitopdf" "Looking for '$(echo $user_search | sed 's/+/\ /g')'"
+	# if sci-hub's website in user search, download this specific link:
+	if [[ $(echo $user_search | grep -o "$site") = "$site" ]]; then
+		download_link=$(curl -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)
+		if [[ $download_link = "" ]]; then
+			download_link=$(echo https:)$(curl -s "$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)
+		fi
+
+	# if user search contains "/" it means it's either a DOI or an address, so immediately try on sci-hub :
+	elif [[ $(echo $user_search | grep -o "\/") = "/" ]]; then
+		user_address=$user_search
+		download_link=$(curl -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)
+		if [[ $download_link = "" ]]; then
+			download_link=$(echo https:)$(curl -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)
+			if [[ $download_link = "https:" ]]; then
+				echo "Empty download link. Trying address with Crossref."
+				doi_search
+				download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+				if [[ $download_link = "" ]]; then
+					download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+				fi
+				#notify-send "Empty download link."
+			fi
+		fi
+
+	# else : search on crossref
+	elif [[ $(echo $(curl -A $headers -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee /tmp/scitopdf_curl.txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+		doi=$(cat /tmp/scitopdf_curl.txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
+		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+		if [[ $download_link = "" ]]; then
+			download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+		fi
 	fi
-	download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
-	if [[ $download_link = "" ]]; then
-		echo "Empty download link."
+
+	if [[ $download_link = "" || $download_link = "https:" ]]; then
+		echo $(tput setaf 1)"Empty download link."$(tput sgr0)
+		#notify-send "Empty download link."
 		exit
 	fi
-	echo "Download link : $download_link"
+	#echo "Download link : $download_link"
 	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
 		if [[ $(echo $(curl -s $site/$doi) | grep -io "article not found") = "article not found" ]]; then
 			#notify-send "Paper not available on Sci-Hub."
-			echo "Paper not available on Sci-Hub."
+			echo $(tput setaf 3)"Paper not available on Sci-Hub."$(tput sgr0)
 		else
 			#notify-send "Paper not found."
-			echo "Paper not found.\\nPlease check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
+			echo $(tput setaf 3)"Paper not found.\\nPlease check if your country is not blocking access to Sci-Hub. Use a VPN if possible."$(tput sgr0)
 			exit 1;
 		fi
 	else
-		echo "Downloading '$filename'."
+		#echo "Downloading '$filename' to '$destination'."
+		echo $(tput bold)"Downloading ..."$(tput sgr0)
+		#curl "$download_link" --output "$filename"
 		curl "$download_link" --output "$filename" --progress-bar
-		#notify-send "$filename downloaded."
-		echo "Done."
+		#notify-send "Paper downloaded!"
+		echo $(tput setaf 2)"Done!"$(tput sgr0)
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $reader "$destination/$filename"
+			setsid $READER "$destination/$filename"
 		fi
 #		exit 1;
 	fi
 else
-	echo "Paper you're looking for (title/DOI/url/authors/year/journal...) : "
+	echo $(tput bold)"Paper to search $(tput sgr0)[title, author, year, DOI, journal, URL...] : "
 	read concatenate
 	paper_search
 fi
@@ -109,8 +163,7 @@ fi
 ################
 # Start script #
 ################
-# Option to download articles from a list #
-# Arguments evaluation : if "-l" or "--list" as first argument, then scitopdf will look inside a .txt file (2nd argument) which would contain several references
+# Arguments' evaluation : if "-l" or "--list" as first argument, scitopdf looks inside a file (2nd argument) which should contain several references
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	automatically_open="no"
 	locate_website
@@ -118,11 +171,8 @@ if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	exit 1
 else
 	# If no option specified, then every word following scitopdf is considered as the title
-	# regrouper les arguments dans une liste
 	args=("$@")
-	# nombre d'arguments
 	ELEMENTS=${#args[@]}
-	# echo chaque element dans une liste
 	for (( i=0;i<$ELEMENTS;i++)); do
 	    concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
 	done
@@ -138,14 +188,12 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
-		#notify-send "Article not downloaded. Check Sci-Hub access."
 		echo "Article not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
 		exit;
 	else
-		echo "Downloading '$filename'."
+		echo $(tput bold)"Downloading ..."$(tput sgr0)
 		curl "$download_link" --output "$filename" --progress-bar
-		#notify-send "$filename downloaded."
-		echo "Done."
+		echo $(tput setaf 2)"Done!"$(tput sgr0)
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
 		fi
@@ -171,4 +219,5 @@ fi
 
 exit
 
-# last modif : 05 sept 21
+# last modif : 2022 apr 01
+# add arguments : -q = no echo ; -w --download-only ; -d --doi ;
