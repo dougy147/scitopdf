@@ -36,4 +36,4 @@ scitopdf --list somefile.txt
 
 ![](example.gif)
 
- bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk
+ bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk
