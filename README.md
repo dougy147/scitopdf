@@ -1,14 +1,11 @@
 # scitopdf
 
-`scitopdf` is a bash script written to download papers from Sci-Hub's database.
-Give it a title and/or authors, year, journal, DOI, URL... for your paper to be automatically opened and saved to a default directory (`$HOME/downloads/scitopdf/`).
+`scitopdf` is a bash written script to download papers from Sci-Hub's database.
+Give it some arguments (title and/or authors, year, journal, DOI, URL...) and it will automatically find, open and save your paper to a default directory (`$HOME/downloads/scitopdf/`).
 
-Don't waste time typing ! Map `scitopdf` to a keyboard shortcut for full speed accessing your desired papers.
-That's easily doable with the clipboard as the first argument, for example : `scitopdf $(xclip -o)`.
+Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer).
 
-Don't forget to set a `$READER` environment variable or to install `zathura`.
-
-You can download multiple papers from a list of references with `scitopdf -l`. Say you pasted a bibliography in a file, `scitopdf` processes each line and downloads papers one by one (no auto-opening).
+You can download multiple papers from a list of references. Paste a bibliography in a file, and `scitopdf -l file.txt` will process each line and download every paper it finds (no auto-opening).
 
 ## Installation
 
@@ -32,8 +29,16 @@ To download multiple papers listed in a file, use `-l` or `--list` :
 scitopdf --list somefile.txt
 ```
 
+## Tips
+
+Don't waste time typing ! Map `scitopdf` to a keyboard shortcut for full speed accessing your papers.
+Simply do it by setting the clipboard as the first argument. For example : `scitopdf $(xclip -o)`.
+
 ## Example
 
 ![](example.gif)
 
+
+<center>
 <i class="fa-solid fa-mug-saucer"></i> bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk
+</center>
