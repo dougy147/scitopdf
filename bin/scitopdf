@@ -13,7 +13,7 @@ destination=$HOME/downloads/scitopdf
 [[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
 
 # Check $READER variable (pdf reader)
-[[ -v READER ]] || echo "No PDF reader.\\nTry setting a \$READER variable, or install zathura." && READER=zathura
+[[ -v READER ]] || echo -e "No PDF reader.\\nTry setting a \$READER variable, or install zathura." && READER=zathura
 
 # Open PDF automatically after download #
 automatically_open="yes"
