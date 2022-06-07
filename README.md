@@ -32,19 +32,19 @@ scitopdf --list a_bibliography.txt
 ```
 
 
-## Papers are stored
+### Papers are stored
 
 Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
 
-## Be sure you can read
+### Be sure you can read
 
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
 
-## I want it all
+### I want it all
 
 If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as papers are listed line by line). So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
 
-## Don't waste time typing!
+### Don't waste time typing!
 
 Go even faster and make your own keyboard shortcut.
 Map your favorite keys combination (I use `Mod+S`) to `scitopdf $(xclip -o)` (or any other clipboard tool).
@@ -52,7 +52,7 @@ Now, just highlight a title or DOI you come accross browsing the web, press your
 
 That's full speed accessing your paper now. Close enough from speed of thought. (why am I selling that script so much? Ok, it's not absolute garbage, but...)
 
-## I love typing...
+### I love typing...
 
 If you're a typewriting kind of person and prefer it the old way, well, no judgment.
 `scitopdf` reveals itself pretty cool too when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
@@ -68,12 +68,12 @@ That way, it's unnecessary to say I'm only responsible for sharing a recipe one 
 So, illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, with and on your personal goods only.
 
-## Good critics are worth it
+## Constructive critics are worth it
 
 Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
 
 ## How did that help ?
 
-If you (1) are cool enough to know what to do with this and (2) find this program useful, I'd be glad and thankful :
+If you (1) are cool enough to know what to do with this 😎 and (2) find this program useful, I'd be glad and thankful :
 
 `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
