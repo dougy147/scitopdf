@@ -4,7 +4,7 @@
 
 Just give it some data (title and/or authors, year, journal, DOI, URL...) and it will automatically find, open and save your paper to a default directory (`$HOME/downloads/scitopdf/`).
 
-![](example.gif =150x)
+![](example.gif)
 
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
 
