@@ -1,5 +1,6 @@
 # scitopdf
 
+<p align="justify">
 In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
 A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
@@ -77,3 +78,4 @@ Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
 If you (1) are cool enough to know what to do with this 😎 and (2) find this program useful, I'd be glad and thankful :
 
 `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
+</p>
