@@ -8,6 +8,30 @@ Feed it with some infos about the paper (title, authors, journal, DOI, URL...), 
 
 ![](example.gif)
 
+## Installation
+
+If you care about your disk space, don't install and try it like this :
+
+`curl "https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf" > /tmp/s; sh /tmp/s`
+
+If 12KB is no problem to you, clone this repo and install it on your distro :
+
+```
+git clone https://github.com/dougy147/scitopdf
+cd scitopdf
+sudo make install
+```
+
+Now try :
+```
+scitopdf "some paper you're looking for"
+```
+or :
+```
+scitopdf --list a_bibliography.txt
+```
+
+
 ## Papers are stored
 
 Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
@@ -32,29 +56,6 @@ That's full speed accessing your paper now. Close enough from speed of thought. 
 
 If you're a typewriting kind of person and prefer it the old way, well, no judgment.
 `scitopdf` reveals itself pretty cool too when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
-
-## Installation
-
-If you care about your disk space, don't install and try it like this :
-
-`curl "https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf" > /tmp/s; sh /tmp/s`
-
-If 12KB is no problem to you, clone this repo and install it on your distro :
-
-```
-git clone https://github.com/dougy147/scitopdf
-cd scitopdf
-sudo make install
-```
-
-Now try :
-```
-scitopdf "some paper you're looking for"
-```
-or :
-```
-scitopdf --list a_bibliography.txt
-```
 
 ## Instructions for the careless mind
 
