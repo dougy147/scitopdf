@@ -1,21 +1,24 @@
 # scitopdf
 
-`scitopdf`, easy to use, is a bash script to quickly leverage of Sci-Hub's database.
+In general terms, `scitopdf` is an easy to use bash script for avid scientific papers readers (that... I'm not). A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
 
-Just give it some data (title and/or authors, year, journal, DOI, URL...) and it will automatically find, open and save your paper to a default directory (`$HOME/downloads/scitopdf/`).
+Feed it with some infos about the paper (title and/or authors, year, journal, DOI, URL...), and 5 seconds later (maybe less... or not) it will pop in front of your eyes.
 
 ![](example.gif)
 
+Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
+
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
 
-You can download multiple papers from a list of references. Paste a bibliography in a file, and `scitopdf -l file.txt` will process each line and download every paper it finds (no auto-opening).
+If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as papers are listed line by line). So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
 
 ## Don't waste time typing!
 
-Make your own keyboard shortcut for full speed accessing yout papers.
-Simply do it by setting the clipboard as an argument!
-Map `scitopdf $(xclip -o)` to your favorite key combination (I use `Mod+S`).
-Now just use your mouse to highlight the title of a reference you come accross browsing the web (or whatever), press your keys, and there you go!
+Go even faster and make your own keyboard shortcut.
+Map your favorite keys combination (I use `Mod+S`) to `scitopdf $(xclip -o)` (or any other clipboard tool).
+Now, just highlight a title or DOI you come accross browsing the web, press your keys, and you're all set for a read.
+
+That's full speed accessing your paper now. Close enough from speed of thought. (why am I selling that script so much? Ok, it's not absolute garbage, but...)
 
 ## I love typing...
 
