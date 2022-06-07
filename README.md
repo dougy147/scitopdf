@@ -13,9 +13,7 @@ A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref s
 
 Feed it with some infos about the paper (title, authors, journal, DOI, URL...), and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
 
-<center>
-<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="70%" />
-</center>
+<center><img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="70%" /></center>
 
 ## Installation
 
