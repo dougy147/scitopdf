@@ -1,12 +1,18 @@
 # scitopdf
 
-In general terms, `scitopdf` is an easy to use bash script for avid scientific papers readers (that... I'm not). A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
+In general terms, `scitopdf` is an easy to use bash script for avid scientific papers readers (that... I'm not).
 
-Feed it with some infos about the paper (title and/or authors, year, journal, DOI, URL...), and 5 seconds later (maybe less... or not) it will pop in front of your eyes.
+A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
+
+Feed it with some infos about the paper (title, authors, journal, DOI, URL...), and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
 
 ![](example.gif)
 
+## Papers are stored
+
 Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
+
+## Set your
 
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
 
@@ -27,23 +33,25 @@ If you're a typewriting kind of person and prefer it the old way, well, no judgm
 
 ## Installation
 
+If you care about your disk space, don't install and try it like this :
+
+`curl "https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf" > /tmp/s; sh /tmp/s`
+
+If 12KB is no problem to you, clone this repo and install it on your distro :
+
 ```
 git clone https://github.com/dougy147/scitopdf
 cd scitopdf
 sudo make install
 ```
-Then simply launch :
-```
-scitopdf
-```
-or directly with data :
+
+Now try :
 ```
 scitopdf "some paper you're looking for"
 ```
-
-To download multiple papers listed in a file, use `-l` or `--list` :
+or :
 ```
-scitopdf --list somefile.txt
+scitopdf --list a_bibliography.txt
 ```
 
 ## Instructions for the careless mind
