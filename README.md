@@ -12,7 +12,7 @@ Feed it with some infos about the paper (title, authors, journal, DOI, URL...), 
 
 Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
 
-## Set your
+## Be sure you can read
 
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
 
