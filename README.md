@@ -1,4 +1,7 @@
-# scitopdf
+
+░▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀
+▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀
+
 
 In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
