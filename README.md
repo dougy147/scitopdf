@@ -1,6 +1,6 @@
 # scitopdf
 
-In general terms, `scitopdf` is an easy to use bash script for avid scientific papers readers (that... I'm not).
+In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
 A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
 
