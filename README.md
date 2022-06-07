@@ -47,7 +47,7 @@ Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change th
 
 ### Be sure you can read
 
-Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist document viewer) for auto-opening.
+Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist and lightweight document viewer) for auto-opening.
 
 ### I want it all
 
