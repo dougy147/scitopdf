@@ -43,7 +43,7 @@ scitopdf --list a_bibliography.txt
 
 ### Papers are stored
 
-Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (before install) from the script itself (`/bin/scitopdf`).
+Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change that default directory (pre-install) from the script itself (`/bin/scitopdf`).
 
 ### Be sure you can read
 
