@@ -49,7 +49,7 @@ Papers are automatically saved to `$HOME/downloads/scitopdf/`. You can change th
 
 Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist and lightweight document viewer) for auto-opening.
 
-### I want it all
+### "I want it all"
 
 If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as papers are listed line by line). So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
 
