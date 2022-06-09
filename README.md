@@ -9,7 +9,7 @@
 
 In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
-A bit more specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
+More specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
 
 Feed it with some infos about the paper (title, authors, journal, DOI, URL...), and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
 
