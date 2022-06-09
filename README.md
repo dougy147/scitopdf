@@ -70,6 +70,8 @@ That's full speed accessing your paper now. Close enough from speed of thought ð
 If you're a typewriting kind of person and prefer it the old way, well, no judgment.
 `scitopdf` reveals itself pretty cool too when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
 
+`search=$(printf "" | dmenu -p "Scitopdf") && scitopdf "$search"`
+
 ## Instructions for the careless mind
 
 Power is all relative, and this program's is pretty low; even quite harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, its use might be unappropriate in your country.
