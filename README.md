@@ -68,7 +68,7 @@ That's full speed accessing your paper now. Close enough from speed of thought ð
 ### I love typing...
 
 If you're a typewriting kind of person and prefer it the old way, well, no judgment.
-`scitopdf` reveals itself pretty cool too when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
+`scitopdf` reveals itself pretty cool too in the terminal, or when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
 
 `search=$(printf "" | dmenu -p "Scitopdf") && scitopdf "$search"`
 
