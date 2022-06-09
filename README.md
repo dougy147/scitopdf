@@ -59,6 +59,10 @@ Go even faster and make your own keyboard shortcut.
 Map your favorite keys combination (I use `Mod+S`) to `scitopdf $(xclip -o)` (or any other clipboard tool).
 Now, just highlight any title or DOI you come accross, press your keys, and you're all set for a read.
 
+<p align="center">
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_keyboard.gif" width="80%" />
+</p>
+
 That's full speed accessing your paper now. Close enough from speed of thought 👍. (why am I selling that dumb script so much?)
 
 ### I love typing...
