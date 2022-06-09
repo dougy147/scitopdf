@@ -21,7 +21,7 @@ Feed it with some infos about the paper (title, authors, journal, DOI, URL...), 
 
 If you really care about your disk space, don't install ! And try it like this :
 
-`curl "https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf" > /tmp/s; sh /tmp/s`
+`curl https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf | bash -s 'your paper'`
 
 If 12KB is no problem to you, push your floppy diskette in, and follow those lines :
 
