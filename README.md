@@ -19,7 +19,7 @@ Feed it with some infos about the paper (title, authors, journal, DOI, URL...), 
 
 ## Installation
 
-If you really care about your disk space, don't install! and try it like this :
+If you really care about your disk space, don't install ! And try it like this :
 
 `curl "https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf" > /tmp/s; sh /tmp/s`
 
