@@ -11,11 +11,13 @@ In general terms, `scitopdf` is a minimalist program for avid readers of scienti
 
 More specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
 
-Feed it with some infos about the paper (title, authors, journal, DOI, URL...), and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
+Feed it with some infos about the paper, and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="80%" />
 </p>
+
+As it makes use of Crossref search engine, `scitopdf` can take any info you've got about the paper (title, authors, journal, DOI, URL, year of publication...)
 
 ## Installation
 
@@ -51,7 +53,9 @@ Don't forget to set a `$READER` environment variable, or to install `zathura` (a
 
 ### "I want it all"
 
-If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as papers are listed line by line). So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
+If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as references are listed line by line).
+
+So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
 
 ### Don't waste time typing!
 
