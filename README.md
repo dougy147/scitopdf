@@ -69,7 +69,7 @@ Now, just highlight any title or DOI you come accross, press your keys, and you'
 
 That's full speed accessing your paper now. Close enough from speed of thought 👍. (why am I selling that dumb script so much?)
 
-### I love typing...
+### "But I love typing..."
 
 If you're a typewriting kind of person and prefer it the old way, well, no judgment.
 `scitopdf` reveals itself pretty cool too in the terminal, or when combined with [`dmenu`](https://tools.suckless.org/dmenu/).

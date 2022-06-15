@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 
-#░▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀
-#▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀
+echo $(tput setf 2) " ░▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀ " $(tput sgr0)
+echo $(tput setf 2) " ▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀ " $(tput sgr0)
 
 # Downloads folder [change that to your favorite location]
 destination=$HOME/downloads/scitopdf
@@ -15,8 +15,10 @@ destination=$HOME/downloads/scitopdf
 
 # Check $READER variable (pdf reader)
 [[ -v READER ]] || \
-	if ! ( READER=zathura && command -v zathura &>/dev/null ); then
+	if [[ $(command -v zathura &>/dev/null) ]]; then
 		echo -e "No PDF reader.\nTry setting a \$READER variable, or install zathura."
+	else
+		READER=zathura
 	fi
 
 # Open PDF automatically after download
@@ -153,7 +155,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		#notify-send "Paper downloaded!"
 		echo $(tput setaf 2)"Done!"$(tput sgr0)
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid "$READER" "$destination/$filename"
+			setsid $READER "$destination/$filename"
 		fi
 #		exit 1;
 	fi
@@ -202,7 +204,7 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 		curl "$download_link" --output "$filename" --progress-bar
 		echo $(tput setaf 2)"Done!"$(tput sgr0)
 		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid "$READER" "$destination/$filename"
+			setsid $READER "$destination/$filename"
 		fi
 	fi
 else
