@@ -130,7 +130,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		fi
 
 	# last try => download first paper found on crossref
-	elif [[ ! $(cat /tmp/scitopdf_curl.txt) == "" ]]; then
+	elif [[ -f /tmp/scitopdf_curl.txt && ! $(cat /tmp/scitopdf_curl.txt) == "" ]]; then
 		doi=$(cat /tmp/scitopdf_curl.txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
 		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
@@ -142,6 +142,8 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 
 	if [[ $download_link = "" || $download_link = "https:" ]]; then
 		echo $(tput setaf 1)"Empty download link."$(tput sgr0)
+		rm /tmp/scitopdf_curl.txt &>/dev/null
+		unset download_link
 		[[ -v listing ]] && not_found=$(( $not_found + 1 ))
 		#notify-send "Empty download link."
 		return
@@ -165,6 +167,8 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		curl "$download_link" --output "$filename" --progress-bar
 		#notify-send "Paper downloaded!"
 		echo $(tput setaf 2)"Done!"$(tput sgr0)
+		rm /tmp/scitopdf_curl.txt &>/dev/null
+		unset download_link
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
 		fi
@@ -188,9 +192,14 @@ if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	not_found=0
 	locate_website
 	ref_index=0
-	while read line; do concatenate=$(echo $line); ref_index=$(( $ref_index + 1 )); paper_search "$line"; done < $2
-	echo -e "\n>> End of file \"$2\""
-	[[ ! $not_found == 0 ]] && echo -e "$not_found out of $ref_index references not found."
+	while read line; do concatenate=$(echo $line);
+		if [[ "$concatenate" == "" ]]; then
+			continue
+		fi
+		ref_index=$(( $ref_index + 1 )); paper_search "$line"; done < $2
+	echo -e "$(tput setf 3)\n>> End of file \"$2\"	$(tput sgr0)"
+	[[ ! $not_found == 0 ]] && echo -e "$(tput setf 3)$not_found out of $ref_index references not found.$(tput sgr0)"
+	[[ $not_found == 0 ]] && echo -e "$(tput setf 3)$ref_index out of $ref_index references found !$(tput sgr0)"
 	exit 1
 else
 	# If no option specified, then every word following scitopdf is considered as the title
@@ -217,6 +226,8 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 		echo $(tput bold)"Downloading ..."$(tput sgr0)
 		curl "$download_link" --output "$filename" --progress-bar
 		echo $(tput setaf 2)"Done!"$(tput sgr0)
+		rm /tmp/scitopdf_curl.txt &>/dev/null
+		unset download_link
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
 		fi
