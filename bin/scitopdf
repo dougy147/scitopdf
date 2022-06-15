@@ -105,12 +105,11 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 
 	# if user search contains "/" it means it's either a DOI or an address, so immediately try on sci-hub :
 	elif [[ $(echo $user_search | grep -o "\/") = "/" ]]; then
-		user_address=$user_search
 		download_link=$(curl -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)
 		if [[ $download_link = "" ]]; then
 			download_link=$(echo https:)$(curl -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)
 			if [[ $download_link = "https:" ]]; then
-				echo "Empty download link. Trying address with Crossref."
+				echo $(tput setaf 1)"Empty download link. Trying address with Crossref."$(tput sgr0)
 				doi_search
 				download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
 				if [[ $download_link = "" ]]; then
@@ -132,6 +131,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 
 	if [[ $download_link = "" || $download_link = "https:" ]]; then
 		echo $(tput setaf 1)"Empty download link."$(tput sgr0)
+		[[ -v listing ]] && not_found=$(( $not_found + 1 ))
 		#notify-send "Empty download link."
 		return
 	fi
@@ -174,10 +174,13 @@ fi
 if [[ $(echo $1) = "-l" || $(echo $1) = "--list" ]]; then
 	automatically_open="no"
 	listing=true
+	not_found=0
 	locate_website
 	ref_index=0
 	while read line; do concatenate=$(echo $line); ref_index=$(( $ref_index + 1 )); paper_search "$line"; done < $2
-	echo ">> End of file \"$2\"" && exit 1
+	echo -e "\n>> End of file \"$2\""
+	[[ ! $not_found == 0 ]] && echo -e "$not_found out of $ref_index references not found."
+	exit 1
 else
 	# If no option specified, then every word following scitopdf is considered as the title
 	args=("$@")
