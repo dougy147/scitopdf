@@ -69,7 +69,7 @@ So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will pr
 
 Go even faster and make your own keyboard shortcut.
 Map your favorite keys combination (I use `Super+S`) to `scitopdf $(xclip -o)` (or any other clipboard tool).
-Now, just highlight any title or DOI you come accross, press your keys, and you're all set for a read.
+Now, just highlight any title, DOI or URL you come accross, press your keys, and you're all set for a read.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_keyboard.gif" width="80%" />
