@@ -128,6 +128,16 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		if [[ $download_link = "" ]]; then
 			download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
 		fi
+
+	# last try => download first paper found on crossref
+	elif [[ ! $(cat /tmp/scitopdf_curl.txt) == "" ]]; then
+		doi=$(cat /tmp/scitopdf_curl.txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
+		doi_search
+		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+		if [[ $download_link = "" ]]; then
+			download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+		fi
+
 	fi
 
 	if [[ $download_link = "" || $download_link = "https:" ]]; then
