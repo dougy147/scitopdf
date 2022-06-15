@@ -52,7 +52,7 @@ change_headers() {
 	Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53 BingPreview/1.0b
 	Mozilla/5.0 (Windows NT 6.3; Win64; x64; Trident/7.0; MAARJS; rv:11.0) like Gecko
 	Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E)
-	Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" >> "$headers_file"
+	Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" | sed 's/\t//' >> "$headers_file"
 	fi
 	headers=$(echo $(cat "$headers_file" | head -n 1))
 	#echo "Current headers : $headers"
@@ -61,6 +61,7 @@ change_headers() {
 	# Find Sci-Hub #
 	#--------------#
 locate_website() {
+	[[ -f /tmp/sci_address ]] && [[ ! $(cat /tmp/sci_address) == "" ]] && site=$(cat /tmp/sci_address) && return
 	echo $(tput bold)"Looking for website..."$(tput sgr0)
 	site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
 	if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
@@ -76,14 +77,14 @@ locate_website() {
 doi_search() {
 change_headers
 if ! [[ $(echo $doi) = "" ]]; then
-	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi.") = "doi." ]]; then
+	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi\.") = "doi." ]]; then
 		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
 		echo $(tput bold)"DOI : $(tput sgr0)$doi"
 	fi
 	echo $(tput bold)"DOI : $(tput sgr0)$doi"
 else
 	echo $(tput setaf 1)"DOI not found."$(tput sgr0)
-	notify-send "scitopdf" "DOI not found."
+	#notify-send "scitopdf" "DOI not found."
 	[[ ! -v listing ]] && exit 1;
 fi
 }
@@ -200,7 +201,7 @@ if [[ $(echo $concatenate | grep -io http) == "http" ]]; then
 	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
-		echo "Paper not found. Please check if your country is not blocking access to Sci-Hub. Use a VPN if possible."
+		echo -e "Paper not found. \nPlease be sure your country is not blocking access to Sci-Hub. \nUse a VPN if possible."
 		[[ ! -v listing ]] && exit;
 	else
 		echo $(tput bold)"Downloading ..."$(tput sgr0)
@@ -231,5 +232,5 @@ fi
 
 exit
 
-# last modif : 2022 apr 01
-# add arguments : -q = no echo ; -w --download-only ; -d --doi ; -u = url
+# last modif : 2022 jun 15
+# add arguments : -q = no echo ; --download-only = no auto-opening ; -d --doi ; -u = url
