@@ -5,7 +5,7 @@ ifndef PREFIX
   PREFIX = /usr/local
 endif
 ifndef MANPREFIX
-  MANPREFIX = $(PREFIX)/share/man
+  MANPREFIX = $(PREFIX)/man
 endif
 
 install:
