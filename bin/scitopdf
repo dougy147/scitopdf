@@ -5,7 +5,13 @@ echo $(tput setf 2) " ░▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒�
 echo $(tput setf 2) " ▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀ " $(tput sgr0)
 
 # Downloads folder [change that to your favorite location]
-destination=$HOME/downloads/scitopdf
+if [ -z "$destination" ]; then
+	if [ -n "$XDG_DOWNLOAD_DIR" ]; then
+		destination="$XDG_DOWNLOAD_DIR"
+	else
+		destination="$HOME/Downloads/scitopdf"
+	fi
+fi
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
 	echo -e "$(tput setf 4)Can't create downloads directory to $destination.\nPlease be sure you have permissions.\nPapers will not be stored.$(tput sgr0)"
