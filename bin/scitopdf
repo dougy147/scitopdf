@@ -11,7 +11,11 @@ destination=$HOME/downloads/scitopdf
 	echo -e "$(tput setf 4)Can't create downloads directory to $destination.\nPlease be sure you have permissions.\nPapers will not be stored.$(tput sgr0)"
 
 # Quickly check internet connection
-[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
+if [[ $OSTYPE == 'darwin'* ]]; then
+	[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
+else
+	[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
+fi
 
 # Check $READER variable (pdf reader)
 [[ -v READER ]] || \
