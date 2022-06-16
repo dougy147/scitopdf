@@ -17,15 +17,7 @@ Feed it with some infos about the paper, and 5 seconds later (maybe less... or m
 <img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="80%" />
 </p>
 
-`scitopdf` recognizes URL and DOI when given, else it will process any info about the paper to find it :
-
-- (trunkated) title, _or_
-- authors, _or_
-- journal, _or_
-- DOI, _or_
-- URL, _or_
-- year of publication, _or_
-- ...
+`scitopdf` recognizes URL and DOI when given, else it will process any info about the paper to find it : (trunkated) title || authors || journal || DOI || URL || year of publication || ...
 
 ## Installation
 
