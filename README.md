@@ -67,7 +67,7 @@ Now, just highlight any title, DOI or URL you come accross, press your keys, and
 <img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_keyboard.gif" width="80%" />
 </p>
 
-That's full speed accessing your paper now. Close enough from speed of thought 👍. (why am I selling that dumb script so much?)
+That's full speed accessing your papers now. Close enough from speed of thought 👍. (why am I selling that dumb script so much?)
 
 ### "But I love typing..."
 
@@ -90,6 +90,12 @@ Please use that script consciously, with and on your personal goods only.
 ## Constructive critics are worth it
 
 Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
+
+### Thanks to contributors
+
+<a href="https://github.com/Phundrak">
+  <img src="https://avatars.githubusercontent.com/u/1893080?v=4?size=50">
+</a>
 
 ## How did that help ?
 
