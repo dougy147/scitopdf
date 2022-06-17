@@ -53,9 +53,13 @@ Don't forget to set a `$READER` environment variable, or to install `zathura` (a
 
 ### "I want it all"
 
-If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever as long as references are listed line by line).
+If you're very hungry for papers, you can auto-download multiple ones. Just give `scitopdf` a list of references (contained in a .txt file, or whatever, **as long as references are listed line by line**).
 
-So, paste a bibliography in `exemple.txt`, and `scitopdf -l example.txt` will process each line and download every paper it finds (no auto-opening).
+So, paste a bibliography in `bib.txt`, and `scitopdf -l bib.txt` will process each line and download every paper it finds (no auto-opening).
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_list.gif" width="80%" />
+</p>
 
 ### Don't waste time typing!
 
