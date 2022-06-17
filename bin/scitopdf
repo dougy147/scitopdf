@@ -17,7 +17,7 @@ echo        " ▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒
 # Downloads folder [change that to your favorite location]
 if [ -z "$destination" ]; then
 	if [ -n "$XDG_DOWNLOAD_DIR" ]; then
-		destination="$XDG_DOWNLOAD_DIR"
+		destination="$XDG_DOWNLOAD_DIR/scitopdf"
 	else
 		destination="$HOME/Downloads/scitopdf"
 	fi
