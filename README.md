@@ -94,7 +94,7 @@ Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
 ### Thanks to contributors
 
 <a href="https://github.com/Phundrak">
-  <img src="https://avatars.githubusercontent.com/u/1893080?v=4?size=50">
+  <img src="https://avatars.githubusercontent.com/u/1893080?v=4" width='50px'>
 </a>
 
 ## How did that help ?
