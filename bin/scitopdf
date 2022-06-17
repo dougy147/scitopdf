@@ -117,7 +117,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 	user_search=$(echo "$concatenate" | sed "s/'/\ /" | sed 's/\ /+/g' | iconv -f utf8 -t ascii//TRANSLIT)
 	#notify-send "scitopdf" "Looking for '$(echo $user_search | sed 's/+/\ /g')'"
 	# if sci-hub's website in user search, download this specific link:
-	[[ -v listing ]] && echo -e "\n${_BOLD}[Reference $ref_index]${_RESET}${_RED}$line${_RESET}"
+	[[ -v listing ]] && echo -e "\n${_BOLD}[Reference $ref_index]${_RESET} ${_RED}$line${_RESET}"
 	if [[ $(echo "$user_search" | grep -o "$site") = "$site" ]]; then
 		download_link=$(curl -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)
 		if [[ $download_link = "" ]]; then
