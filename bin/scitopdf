@@ -39,9 +39,15 @@ fi
 
 # Quickly check internet connection
 if [[ $OSTYPE == 'darwin'* ]]; then
-	[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
+	[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && \
+		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
+		[[ $no_net_choice == "" || \
+			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
 else
-	[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && echo "No internet connection." && exit 1
+	[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && \
+		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
+		[[ $no_net_choice == "" || \
+			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
 fi
 
 # Check $READER variable (pdf reader)
@@ -55,9 +61,14 @@ fi
 # Open PDF automatically after download
 automatically_open="yes"
 
-# Temporary file with different headers avoid(ish)ing blocation
-headers_file=/tmp/scitopdf_headers
+# Temporary files
+# use different headers avoid(ish)ing blocation
+headers_file="/tmp/scitopdf_headers"
 [ ! -f "$headers_file" ] && touch "$headers_file"
+# store SH address here
+sci_address="/tmp/sci_address"
+# store curl results here
+scitopdf_curl="/tmp/scitopdf_curl"
 
 # Timeout for Crossref : seems useless right now (03/2022)
 # requests_timeout=6
@@ -91,7 +102,7 @@ change_headers() {
 	# Find Sci-Hub #
 	#--------------#
 locate_website() {
-	[[ -f /tmp/sci_address ]] && [[ ! $(cat /tmp/sci_address) == "" ]] && site=$(cat /tmp/sci_address) && return
+	[[ -f "$sci_address" ]] && [[ ! $(cat "$sci_address") == "" ]] && site=$(cat "$sci_address") && return
 	echo "${_BOLD}Looking for website...${_RESET}"
 	site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
 	if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
@@ -99,7 +110,7 @@ locate_website() {
 		echo -e "Sci-Hub not found. \nCheck https://sci-hub.now.sh\nFor manual website setting, use the -u option" # TODO
 		exit 1;
 	else
-		echo $site > "/tmp/sci_address"
+		echo $site > ""$sci_address""
 	fi
 }
 	#__________________________#
@@ -148,8 +159,8 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		fi
 
 	# else : search on crossref
-	elif [[ $(echo $(curl -A $headers -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee /tmp/scitopdf_curl.txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
-		doi=$(cat /tmp/scitopdf_curl.txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
+	elif [[ $(echo $(curl -A $headers -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
 		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
 		if [[ $download_link = "" ]]; then
@@ -157,8 +168,8 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		fi
 
 	# last try => download first paper found on crossref / mismatch risk
-	elif [[ -f /tmp/scitopdf_curl.txt && ! $(cat /tmp/scitopdf_curl.txt) == "" ]]; then
-		doi=$(cat /tmp/scitopdf_curl.txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
+	elif [[ -f "$scitopdf_curl".txt && ! $(cat "$scitopdf_curl".txt) == "" ]]; then
+		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
 		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
 		if [[ $download_link = "" ]]; then
@@ -169,7 +180,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 
 	if [[ $download_link = "" || $download_link = "https:" ]]; then
 		echo "${_RED}Empty download link.${_RESET}"
-		rm /tmp/scitopdf_curl.txt &>/dev/null
+		rm "$scitopdf_curl".txt &>/dev/null
 		unset download_link
 		[[ -v listing ]] && not_found=$(( $not_found + 1 ))
 		return
@@ -187,7 +198,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		echo "${_BOLD}Downloading ...${_RESET}"
 		curl "$download_link" --output "$filename" --progress-bar
 		echo "${_GREEN}Done!${_RESET}"
-		rm /tmp/scitopdf_curl.txt &>/dev/null
+		rm "$scitopdf_curl".txt &>/dev/null
 		unset download_link
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
@@ -248,7 +259,7 @@ if [[ $(echo $concatenate | grep -io "http:") == "http:" ]]; then
 		echo "${_BOLD}Downloading ...${_RESET}"
 		curl "$download_link" --output "$filename" --progress-bar
 		echo "${_GREEN}Done!${_RESET}"
-		rm /tmp/scitopdf_curl.txt &>/dev/null
+		rm "$scitopdf_curl".txt &>/dev/null
 		unset download_link
 		if [ $(echo $automatically_open) = "yes" ]; then
 			setsid $READER "$destination/$filename"
@@ -257,7 +268,7 @@ if [[ $(echo $concatenate | grep -io "http:") == "http:" ]]; then
 else
 	concatenate=$(echo $concatenate | sed 's/\\//g')
 	locate_website
-	site=$(echo $(cat /tmp/sci_address))
+	site=$(echo $(cat "$sci_address"))
 	paper_search
 fi
 
