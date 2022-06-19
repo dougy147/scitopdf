@@ -67,7 +67,7 @@ headers_file="/tmp/scitopdf_headers"
 [ ! -f "$headers_file" ] && touch "$headers_file"
 # store SH address here
 sci_address="/tmp/sci_address"
-# store curl results here
+# store curl -L results here
 scitopdf_curl="/tmp/scitopdf_curl"
 
 # Timeout for Crossref : seems useless right now (03/2022)
@@ -138,22 +138,22 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 	user_search=$(echo "$concatenate" | sed "s/'/\ / ; s/\ /+/g" | iconv -f utf8 -t ascii//TRANSLIT)
 	[[ -v listing ]] && echo -e "\n${_BOLD}[Reference $ref_index]${_RESET} ${_RED}$line${_RESET}"
 	if [[ $(echo "$user_search" | grep -o "$site") = "$site" ]]; then
-		download_link=$(curl -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)
+		download_link="$(curl -L -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)"
 		if [[ $download_link = "" ]]; then
-			download_link=$(echo https:)$(curl -s "$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)
+			download_link="$(echo https:)$(curl -L -s "$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
 		fi
 
 	# if user search contains "/" it means it's either a DOI or an address, so immediately try on sci-hub :
 	elif [[ $(echo $user_search | grep -o "\/") = "/" ]]; then
-		download_link=$(curl -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)
+		download_link="$(curl -L -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)"
 		if [[ $download_link = "" ]]; then
-			download_link=$(echo https:)$(curl -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)
+			download_link="$(echo https:)$(curl -L -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
 			if [[ $download_link = "https:" ]]; then
 				echo "${_RED}Empty download link. Trying address with Crossref.${_RESET}"
 				doi_search
-				download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+				download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
 				if [[ $download_link = "" ]]; then
-					download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+					download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
 				fi
 			fi
 		fi
@@ -162,18 +162,18 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 	elif [[ $(echo $(curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
 		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
-		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+		download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
 		if [[ $download_link = "" ]]; then
-			download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+			download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
 		fi
 
 	# last try => download first paper found on crossref / mismatch risk
 	elif [[ -f "$scitopdf_curl".txt && ! $(cat "$scitopdf_curl".txt) == "" ]]; then
 		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
-		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
+		download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
 		if [[ $download_link = "" ]]; then
-			download_link=$(echo https:)$(curl -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)
+			download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
 		fi
 
 	fi
@@ -188,7 +188,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 	filename=$(echo $download_link | sed 's:.*/::')
 	cd $destination
 	if [[ $(echo $filename) == "" ]]; then
-		if [[ $(echo $(curl -s $site/$doi) | grep -io "article not found") = "article not found" ]]; then
+		if curl -L -s "$site/$doi" | grep -qi "article not found"; then
 			echo "${_YELLOW}Paper not available on Sci-Hub.${_RESET}"
 		else
 			echo "${_YELLOW}Paper not found.\\nPlease check if your country is not blocking access to Sci-Hub. Use a VPN if possible.${_RESET}"
@@ -196,7 +196,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		fi
 	else
 		echo "${_BOLD}Downloading ...${_RESET}"
-		curl "$download_link" --output "$filename" --progress-bar
+		curl -L "$download_link" --output "$filename" --progress-bar
 		echo "${_GREEN}Done!${_RESET}"
 		rm "$scitopdf_curl".txt &>/dev/null
 		unset download_link
@@ -246,7 +246,7 @@ fi
 if [[ $(echo $concatenate | grep -io "http:") == "http:" ]]; then
 	locate_website
 	concatenate=$(echo $concatenate | sed "s/'//g ; s/\ //g" | sed 's/\\//g')
-	download_link=$(echo $(curl -s $site/$concatenate) | grep -io "http.*\.pdf" | head -n 1)
+	download_link="$(curl -L -s "$site/$concatenate" | grep -io "http.*\.pdf" | head -n 1)"
 	if [[ $(echo $download_link | cut -c1-2) == "//" ]]; then
 		download_link=$(echo $download_link | sed 's/\/\//https:\/\//g')
 	fi
@@ -257,7 +257,7 @@ if [[ $(echo $concatenate | grep -io "http:") == "http:" ]]; then
 		[[ ! -v listing ]] && exit;
 	else
 		echo "${_BOLD}Downloading ...${_RESET}"
-		curl "$download_link" --output "$filename" --progress-bar
+		curl -L "$download_link" --output "$filename" --progress-bar
 		echo "${_GREEN}Done!${_RESET}"
 		rm "$scitopdf_curl".txt &>/dev/null
 		unset download_link
