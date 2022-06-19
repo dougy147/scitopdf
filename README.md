@@ -33,6 +33,10 @@ cd scitopdf
 sudo make install
 ```
 
+If you are using ROSA Linux, you can install scitopdf from the official repository:
+
+`sudo dnf install scitopdf`
+
 Now try :
 ```
 scitopdf "some paper you're looking for"
