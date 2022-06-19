@@ -110,7 +110,7 @@ Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
 <a href="https://github.com/Phundrak">
   <img src="https://avatars.githubusercontent.com/u/1893080?v=4" width='50px'>
 </a>
-<a href="https://github.com/Phundrak">
+<a href="https://github.com/mikhailnov">
   <img src="https://avatars.githubusercontent.com/u/15802528?v=4" width='50px'>
 </a>
 
