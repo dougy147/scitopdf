@@ -26,6 +26,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 done
 
 # Downloads folder [change that to your favorite location]
+XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD)}"
 if [ -z "$destination" ]; then
 	if [ -n "$XDG_DOWNLOAD_DIR" ]; then
 		destination="$XDG_DOWNLOAD_DIR/scitopdf"
