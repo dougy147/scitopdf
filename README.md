@@ -33,9 +33,15 @@ cd scitopdf
 sudo make install
 ```
 
-If you are using ROSA Linux, you can install scitopdf from the official repository:
+If you are using ROSA Linux, you can install `scitopdf` from the official repository:
 
 `sudo dnf install scitopdf`
+
+For Arch users, `scitopdf` is maintened in the AUR :
+
+```
+yay -S scitopdf
+```
 
 Now try :
 ```
