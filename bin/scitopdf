@@ -159,7 +159,7 @@ if ! [[ $(echo "$concatenate") = "" ]]; then
 		fi
 
 	# else : search on crossref
-	elif [[ $(echo $(curl -A $headers -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+	elif [[ $(echo $(curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
 		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
 		doi_search
 		download_link=$(curl -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)
