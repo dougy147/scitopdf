@@ -48,7 +48,7 @@ scitopdf --list a_bibliography.txt
 
 - ROSA Linux (official repository) : `sudo dnf install scitopdf`
 
-## Adapt to your needs 😎
+## Adapt to your needs
 
 > Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
 >
