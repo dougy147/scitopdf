@@ -76,7 +76,7 @@ Papers are automatically saved to `$XDG_DOWNLOAD_DIR/scitopdf` (or `~/Downloads/
 
 ### Be sure you can read
 
-Don't forget to set a `$READER` environment variable, or to install `zathura` (a minimalist and lightweight document viewer) for auto-opening.
+For auto-opening, `scitopdf` will do whatever it can to use your default PDF reader. But if it fails, don't forget to set a `READER` environment variable, or to install `zathura` (a minimalist and lightweight document viewer).
 
 ### "I want it all"
 
