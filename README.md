@@ -58,13 +58,13 @@ That goal is obviously not reached (too many OS ðŸ¤¯, sad country restrictions ð
 
 | Flag                       | Functionality                                             |
 |----------------------------|-----------------------------------------------------------|
-| **`-l`**, `--list`         | Download references line by line from a bibliography file |
-| **`-D`**, `--download-dir` | Store papers in a specified directory (absolute path)     |
-| **`-u`**, `--url`          | Manually set Sci-Hub address                              |
-| **`-p`**, `--no-auto-open` | Pass on auto-opening                                      |
-| **`-q`**, `--quiet`        | Quiet mode, no echo except for erros                      |
-| **`-h`**, `--help`         | Print this help menu                                      |
-| **`man scitopdf`           | Check the manual for more tweaks                          |
+| `-l`, `--list`         | Download references line by line from a bibliography file |
+| `-D`, `--download-dir` | Store papers in a specified directory (absolute path)     |
+| `-u`, `--url`          | Manually set Sci-Hub address                              |
+| `-p`, `--no-auto-open` | Pass on auto-opening                                      |
+| `-q`, `--quiet`        | Quiet mode, no echo except for erros                      |
+| `-h`, `--help`         | Print this help menu                                      |
+| `man scitopdf`           | Check the manual for more tweaks                          |
 
 - **Example** : `scitopdf -p "protein measurement with the folin" -q -D "$HOME/science"`
 
