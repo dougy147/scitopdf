@@ -179,7 +179,7 @@ check_website() {
 	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
 		[[ ! $quiet = true ]] && echo -e "Sci-Hub not found. Checking alternatives.\nFor manual website setting, use the -u option."
 		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
-		[[ "$LANG" =~ ru_* ]] && site="https://sci-hub.ru"
+		[[ "$LANG" =~ ru_* ]] && site="${site/sci-hub.st/sci-hub.ru}"
 		check_website
 		return
 	fi
