@@ -111,6 +111,12 @@ locate_website() {
 		echo -e "Sci-Hub not found. \nCheck https://sci-hub.now.sh\nFor manual website setting, use the -u option" # TODO
 		exit 1;
 	else
+		# sci-hub.st is blocked by Roskomnadzor in Russia, sci-hub.ru is not
+		# sci-hub.st redirects to sci-hub.ru when accessing from Russia
+		# Try to guess country by locale
+		if [[ "$LANG" =~ ru_* ]]; then
+			site="${site/sci-hub.st/sci-hub.ru}"
+		fi
 		echo $site > "$sci_address"
 	fi
 }
