@@ -42,13 +42,13 @@ or :
 scitopdf --list a_bibliography.txt
 ```
 
-### Also check your distro repos !
+### Also check your distro repos 👀
 
 - Arch Linux (AUR) : `yay -S scitopdf`
 
 - ROSA Linux (official repository) : `sudo dnf install scitopdf`
 
-## Adapt to your needs
+## Adapt to your needs !
 
 > Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
 >
