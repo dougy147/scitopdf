@@ -33,17 +33,6 @@ cd scitopdf
 sudo make install
 ```
 
-If you are using ROSA Linux, you can install `scitopdf` from the official repository:
-```
-sudo dnf install scitopdf
-```
-
-For Arch users, `scitopdf` is maintened in the AUR :
-
-```
-yay -S scitopdf
-```
-
 Now try :
 ```
 scitopdf "some paper you're looking for"
@@ -53,6 +42,11 @@ or :
 scitopdf --list a_bibliography.txt
 ```
 
+### Also check your distro repos !
+
+- Arch Linux (AUR) : `yay -S scitopdf`
+
+- ROSA Linux (official repository) : `sudo dnf install scitopdf`
 
 ### Papers are stored
 
@@ -90,6 +84,25 @@ If you're a typewriting kind of person and prefer it the old way, well, no judgm
 `scitopdf` reveals itself pretty cool too in the terminal, or when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
 
 Map this `search=$(printf "" | dmenu -p "Scitopdf") && scitopdf "$search"` to your favorite keys combo.
+
+### Adapt to your needs 😎
+
+> Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
+> --<cite>Mary Poppins</cite>
+
+That goal is obviously not reached (too many OS 🤯, sad country restrictions 😥, coding skills deficit 📉...) but let's start somewhere!
+
+| Flag                       | Functionality                                             |
+|----------------------------|-----------------------------------------------------------|
+| **`-l`**, `--list`         | Download references line by line from a bibliography file |
+| **`-D`**, `--download-dir` | Store papers in a specified directory (absolute path)     |
+| **`-u`**, `--url`          | Manually set Sci-Hub address                              |
+| **`-p`**, `--no-auto-open` | Pass on auto-opening                                      |
+| **`-q`**, `--quiet`        | Quiet mode, no echo except for erros                      |
+| **`-h`**, `--help`         | Print this help menu                                      |
+| **`man scitopdf`           | Check the manual for more tweaks                          |
+
+- **Example** : `scitopdf -p "protein measurement with the folin" -q -D "$HOME/science"`
 
 ## Instructions for the careless mind
 

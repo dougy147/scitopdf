@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 
+# Preparing formatted outputs
 _RED=$(tput setaf 1)
 _GREEN=$(tput setaf 2)
 _YELLOW=$(tput setaf 3)
@@ -11,78 +12,138 @@ _WHITE=$(tput setaf 7)
 _RESET=$(tput sgr0)
 _BOLD=$(tput bold)
 
-echo "${_GREEN} ░▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀ "
-echo          " ▒▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀ ${_RESET}"
-
-# Check arguments
+# Check flags
 args=("$@")
 ELEMENTS=${#args[@]} # arguments number
 for (( i=0;i<$ELEMENTS;i++)); do
+	[[ -v pass_arg ]] && unset pass_arg && continue
 	[[ $(echo ${args[${i}]}) == "-l" || \
 		$(echo ${args[${i}]}) == "--list" ]] && \
-		listing=true && \
-		index_bibliography_file=$(( i + 1 )) && \
-		bibliography_file=${args[${index_bibliography_file}]}
+			pass_arg=true && \
+			index_bibliography_file=$(( i + 1 )) && \
+			bibliography_file="${args[${index_bibliography_file}]}" && \
+			listing=true && \
+			continue
+	[[ $(echo ${args[${i}]}) == "-D" || \
+		$(echo ${args[${i}]}) == "--download-dir" ]] && \
+			pass_arg=true && \
+			index_destination=$(( i + 1 )) && \
+			destination="${args[${index_destination}]}" && \
+			continue
+	[[ $(echo ${args[${i}]}) == "-u" || \
+		$(echo ${args[${i}]}) == "--url" ]] && \
+			pass_arg=true && \
+			index_user_url=$(( i + 1 )) && \
+			user_url="${args[${index_user_url}]}" && \
+			continue
+	[[ $(echo ${args[${i}]}) == "-p" || \
+		$(echo ${args[${i}]}) == "--no-auto-open" ]] && \
+			automatically_open=false && \
+			continue
+	[[ $(echo ${args[${i}]}) == "-q" || \
+		$(echo ${args[${i}]}) == "--quiet" ]] && \
+			quiet=true && \
+			continue
+	[[ $(echo ${args[${i}]}) == "-h" || \
+		$(echo ${args[${i}]}) == "--help" ]] && \
+			echo -e "Help menu : \
+			\n -l : Download references line by line from a bibliography file \
+			\n -D : Store papers in a specified directory (absolute path) \
+			\n -u : Manually set Sci-Hub address \
+			\n -p : Pass on auto-opening \
+			\n -q : Quiet mode, no echo except for errors \
+			\n -h : Print this help menu \
+			\n man scitopdf : Check the manual for more tweaks \
+			\n \
+			\n Example : scitopdf \"protein measurement with the folin\" -p -q -D \"$HOME/science\"" && exit 1
+	concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
+	[ -z "$automatically_open" ] && automatically_open=true
 done
 
-# Downloads folder [change that to your favorite location]
-XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD)}"
-if [ -z "$destination" ]; then
-	if [ -n "$XDG_DOWNLOAD_DIR" ]; then
-		destination="$XDG_DOWNLOAD_DIR/scitopdf"
-	else
-		destination="$HOME/Downloads/scitopdf"
-	fi
-fi
+[[ ! $quiet = true ]] && echo "${_GREEN}  ▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀ "
+[[ ! $quiet = true ]] && echo          "  ▄██░▀▄▄░█░▒█▒░▀▄▀░█▀▒▒█▄▀░█▀ ${_RESET}"
 
-[ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
-	echo -e "${_BLUE}Can't create downloads directory to $destination.\nPlease be sure you have permissions.\nPapers will not be stored.${_RESET}"
-
-# Quickly check internet connection
-if [[ $OSTYPE == 'darwin'* ]]; then
-	[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && \
-		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
-		[[ $no_net_choice == "" || \
-			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
-else
-	[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && \
-		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
-		[[ $no_net_choice == "" || \
-			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
-fi
-
-# Check $READER variable (pdf reader)
-[[ -v READER ]] || \
-	if [[ $(command -v zathura &>/dev/null) ]]; then
-		echo -e "No PDF reader.\nTry setting a \$READER variable, or install zathura."
-	else
-		READER=zathura
-	fi
-
-# Open PDF automatically after download
-automatically_open="yes"
-
-# Temporary files
-# use different headers avoid(ish)ing blocation
-headers_file="/tmp/scitopdf_headers"
-[ ! -f "$headers_file" ] && touch "$headers_file"
-# store SH address here
-sci_address="/tmp/sci_address"
-# store curl -L results here
-scitopdf_curl="/tmp/scitopdf_curl"
+# Declaring temporary files
+headers_file="/tmp/scitopdf_headers" 	# use different headers avoid(ish)ing blocation
+sci_address="/tmp/sci_address" 		# store SH address here
+scitopdf_curl="/tmp/scitopdf_curl" 	# store curl -L results here
 
 # Timeout for Crossref : seems useless right now (03/2022)
 # requests_timeout=6
 
-##############
-# Functions  #
-##############
-	#_________________#
-	# Rolling headers #
+#############
+# Functions #
+#############
+#	#------------------#
+#	# Check connection #
+#	#------------------#
+#check_net() {
+#	# Quickly check internet connection
+#	if [[ $OSTYPE == 'darwin'* ]]; then
+#		[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && \
+#		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
+#		[[ $no_net_choice == "" || \
+#			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
+#	else
+#		[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && \
+#		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
+#		[[ $no_net_choice == "" || \
+#			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
+#	fi
+#}
 	#-----------------#
+	# Download folder # #TODO -> Use a more "universal" method to pinpoint users download dir
+	#-----------------#
+set_download_folder() {
+	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD)}"
+	[ ! -v destination ] && \
+		if [ -n "$XDG_DOWNLOAD_DIR" ]; then
+			destination="$XDG_DOWNLOAD_DIR/scitopdf"
+		else
+			destination="$HOME/Downloads/scitopdf"
+		fi
+	# Check download folder permissions
+	[ -d $destination ] || \
+		mkdir -p "$destination" &> /dev/null || \
+			( echo -e "${_BLUE}Can't access $destination. Please be sure you have permissions.\nPapers will be temporary saved to /tmp.${_RESET}" && \
+			destination="/tmp" )
+}
+	#------------------#
+	# Check PDF reader # #TODO -> Use a more "universal" method to identify default PDF application
+	#------------------#
+set_pdf_reader() {
+	# Find default PDF reader, else use zathura
+	[ -v READER ] && return
+	# If xdg-mime available, ask for defaut PDF reader
+	if [[ $(command -v xdg-mime) ]]; then
+		DESKTOPFILE=$(xdg-mime query default application/pdf)
+		DESKTOPPATH="$HOME/.local/share/applications/"
+		[[ ! -f $DESKTOPPATH$DESKTOPFILE ]] && DESKTOPPATH="/usr/share/applications/"
+		[[ ! -f $DESKTOPPATH$DESKTOPFILE ]] && DESKTOPPATH="/usr/local/share/applications/"
+		EXECNAME=$(cat $DESKTOPPATH$DESKTOPFILE | grep ^Exec | cut -d '=' -f2 | cut -d ' ' -f 1 | head -n 1)
+		# For mad wine users ;) Keep in mind we're trying to set a "universal" handler!
+		[[ $(echo $EXECNAME | grep -io "wine") ]] && \
+			EXECNAME=$(cat $DESKTOPPATH$DESKTOPFILE | grep ^Exec | sed 's/^Exec=.*\.wine\"\ // ; s/\%f//') && \
+			wine=true && READER=$EXECNAME && return
+		READER=$(which $EXECNAME)
+		if ! [[ $(command -v "$READER") ]]; then
+			unset READER
+		else
+			return
+		fi
+	fi
+	# If xdg-mime fails or doesn't exist, use or propose zathura
+	if [[ $(command -v zathura) ]]; then
+		READER=zathura
+	else
+		echo -e "No PDF reader.\nInstall zathura or try setting a READER environment variable.\nExample : 'export READER=your_pdf_reader'"
+	fi
+}
+	#-----------------#
+	# Rolling headers # Might not be that useful, Crossref is quite
+	#-----------------# indulgent with requests.
 change_headers() {
-	cat "$headers_file" | sed '1q' >> "$headers_file"
-	sed -i '1d' "$headers_file"
+	[ ! -f "$headers_file" ] && touch "$headers_file"
 	if [[ $(cat "$headers_file") == "" ]]; then
 		echo "Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0
 	Mozilla/5.0 (iPad; CPU OS 8_1_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B466 Safari/600.1.4
@@ -97,135 +158,169 @@ change_headers() {
 	Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E)
 	Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36" | sed 's/\t//' >> "$headers_file"
 	fi
+	cat "$headers_file" | sed '1q' >> "$headers_file"
+	sed -i '1d' "$headers_file"
 	headers=$(echo $(cat "$headers_file" | head -n 1))
 }
-	#______________#
-	# Find Sci-Hub #
 	#--------------#
+	# Find Sci-Hub # Due to different countries policy, we should
+	#--------------# make sure everyone can access SH easily.
 locate_website() {
+	[ -v user_url ] && site=$user_url && return
 	[[ -f "$sci_address" ]] && [[ ! $(cat "$sci_address") == "" ]] && site=$(cat "$sci_address") && return
-	echo "${_BOLD}Looking for website...${_RESET}"
-	site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
-	if [[ $(echo $(curl -v $site 2>&1) | grep -io "Could not resolve" | tail -n 1) = $(echo "Could not resolve") ]]; then
-		# TODO store known stable addresses
-		echo -e "Sci-Hub not found. \nCheck https://sci-hub.now.sh\nFor manual website setting, use the -u option" # TODO
-		exit 1;
-	else
-		echo $site > "$sci_address"
-	fi
+	[[ "$LANG" =~ ru_* ]] && site="https://sci-hub.ru" && return
+	site="https://sci-hub.st"
 }
-	#__________________________#
+	#---------------#
+	# Check website # #TODO -> Find best alternative methods
+	#---------------#
+check_website() {
+	curl -s "$site" > /dev/null
+	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
+		[[ ! $quiet = true ]] && echo -e "Sci-Hub not found. Checking alternatives.\nFor manual website setting, use the -u option."
+		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
+		[[ "$LANG" =~ ru_* ]] && site="https://sci-hub.ru"
+		check_website
+		return
+	fi
+	echo $site > "$sci_address"
+}
+	#--------------------------#
 	# Look for DOI on Crossref #
 	#--------------------------#
 doi_search() {
-change_headers
-if ! [[ $(echo $doi) = "" ]]; then
-	if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi\.") = "doi." ]]; then
-		doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
-		echo "${_BOLD}DOI: ${_RESET}$doi"
+	change_headers
+	if ! [[ $(echo $doi) = "" ]]; then
+		if [[ $(echo $doi | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi\.") = "doi." ]]; then
+			doi=$(echo $doi | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///')
+			[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
+		fi
+		[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
+	else
+		[[ ! $quiet = true ]] && echo "${_RED}DOI not found.${_RESET}"
+		[[ "$listing" = false ]] && exit 1;
 	fi
-	echo "${_BOLD}DOI: ${_RESET}$doi"
-else
-	echo "${_RED}DOI not found.${_RESET}"
-	[[ ! -v listing ]] && exit 1;
-fi
 }
-	#________________#
+	#----------------#
 	# Look for paper #
 	#----------------#
 paper_search() {
-if ! [[ $(echo "$concatenate") = "" ]]; then
 	change_headers
-	user_search=$(echo "$concatenate" | sed "s/'/\ / ; s/\ /+/g" | iconv -f utf8 -t ascii//TRANSLIT)
-	[[ -v listing ]] && echo -e "\n${_BOLD}[Reference $ref_index]${_RESET} ${_RED}$line${_RESET}"
-	if [[ $(echo "$user_search" | grep -o "$site") = "$site" ]]; then
-		download_link="$(curl -L -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)"
-		if [[ $download_link = "" ]]; then
-			download_link="$(echo https:)$(curl -L -s "$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
-		fi
+	if [[ $(echo $concatenate | grep -io "http:") ]]; then
+		concatenate=$(echo $concatenate | sed "s/'//g ; s/\ //g" | sed 's/\\//g')
+		download_link="$(curl -L -s "$site/$concatenate" | grep -io "http.*\.pdf" | head -n 1)"
+		[[ $(echo $download_link | cut -c1-2) == "//" ]] && download_link=$(echo $download_link | sed 's/\/\//https:\/\//g')
+		filename=$(echo $download_link | sed 's:.*/::')
+		cd $destination
+		[[ "$filename" == "" ]] && \
+			[[ ! $quiet = true ]] && echo -e "Paper not found. \nPlease be sure your country is not blocking access to Sci-Hub. \nUse a VPN if possible." && \
+			exit
+		[[ ! $quiet = true ]] && echo "${_BOLD}Downloading ...${_RESET}" && curl -L "$download_link" --output "$filename" --progress-bar
+		[[ $quiet = true ]] && curl -Ls "$download_link" --output "$filename"
+		[[ ! $quiet = true ]] && echo "${_GREEN}Done!${_RESET}"
+		rm "$scitopdf_curl".txt &>/dev/null
+		unset download_link
+		[[ "$automatically_open" = true ]] && setsid $READER "$destination/$filename"
+	else
+		concatenate=$(echo $concatenate | sed 's/\\//g')
+		site=$(echo $(cat "$sci_address"))
+	fi
+	if ! [[ $(echo "$concatenate") = "" ]]; then
+		[[ ! -v automatically_open ]] && automatically_open=true
+		user_search=$(echo "$concatenate" | sed "s/'/\ / ; s/\ /+/g" | iconv -f utf8 -t ascii//TRANSLIT)
+		[[ "$listing" = true ]] && [[ ! $quiet = true ]] && echo -e "\n${_BOLD}[Reference $ref_index]${_RESET} ${_RED}$line${_RESET}"
+		if [[ $(echo "$user_search" | grep -o "$site") = "$site" ]]; then
+			download_link="$(curl -L -s "$user_search" | grep -io "http.*\.pdf" | head -n 1)"
+			if [[ $download_link = "" ]]; then
+				download_link="$(echo https:)$(curl -L -s "$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
+			fi
 
-	# if user search contains "/" it means it's either a DOI or an address, so immediately try on sci-hub :
-	elif [[ $(echo $user_search | grep -o "\/") = "/" ]]; then
-		download_link="$(curl -L -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)"
-		if [[ $download_link = "" ]]; then
-			download_link="$(echo https:)$(curl -L -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
-			if [[ $download_link = "https:" ]]; then
-				echo "${_RED}Empty download link. Trying address with Crossref.${_RESET}"
-				doi_search
-				download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
-				if [[ $download_link = "" ]]; then
-					download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
+		# if user search contains "/" it means it's either a DOI or an address, so immediately try on sci-hub :
+		elif [[ $(echo $user_search | grep -o "\/") = "/" ]]; then
+			download_link="$(curl -L -s "$site/$user_search" | grep -io "http.*\.pdf" | head -n 1)"
+			if [[ $download_link = "" ]]; then
+				download_link="$(echo https:)$(curl -L -s "$site/$user_search" | grep -io "\/\/.*\.pdf" | head -n 1)"
+				if [[ $download_link = "https:" ]]; then
+					[[ ! $quiet = true ]] && echo "${_RED}Empty download link. Trying address with Crossref.${_RESET}"
+					doi_search
+					download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
+					if [[ $download_link = "" ]]; then
+						download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
+					fi
 				fi
 			fi
+
+		# else : search on crossref
+		elif [[ $(echo $(curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
+			doi="$(grep -io "https://doi.*" "$scitopdf_curl".txt | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | head -n 2 | tail -n 1)"
+			doi_search
+			download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
+			if [[ $download_link = "" ]]; then
+				download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
+			fi
+
+		# last try => download first paper found on crossref / mismatch risk
+		elif [[ -f "$scitopdf_curl".txt && ! $(cat "$scitopdf_curl".txt) == "" ]]; then
+			doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
+			doi_search
+			download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
+			if [[ $download_link = "" ]]; then
+				download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
+			fi
+
 		fi
 
-	# else : search on crossref
-	elif [[ $(echo $(curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) = "$user_search" ]]; then
-		doi="$(grep -io "https://doi.*" "$scitopdf_curl".txt | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | head -n 2 | tail -n 1)"
-		doi_search
-		download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
-		if [[ $download_link = "" ]]; then
-			download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
+		if [[ $download_link = "" || $download_link = "https:" ]]; then
+			[[ ! $quiet = true ]] && echo "${_RED}Empty download link.${_RESET}"
+			rm "$scitopdf_curl".txt &>/dev/null
+			unset download_link
+			[[ "$listing" = true ]] && not_found=$(( $not_found + 1 ))
+			return
 		fi
-
-	# last try => download first paper found on crossref / mismatch risk
-	elif [[ -f "$scitopdf_curl".txt && ! $(cat "$scitopdf_curl".txt) == "" ]]; then
-		doi=$(cat "$scitopdf_curl".txt | grep -io "https://doi.*" | grep -io "doi.*" | sed 's/http:\/\///' | grep -io "/.*" | sed 's/\///' | head -n 2 | tail -n 1)
-		doi_search
-		download_link="$(curl -L -s "$site/$doi" | grep -io "http.*\.pdf" | head -n 1)"
-		if [[ $download_link = "" ]]; then
-			download_link="$(echo https:)$(curl -L -s "$site/$doi" | grep -io "\/\/.*\.pdf" | head -n 1)"
-		fi
-
-	fi
-
-	if [[ $download_link = "" || $download_link = "https:" ]]; then
-		echo "${_RED}Empty download link.${_RESET}"
-		rm "$scitopdf_curl".txt &>/dev/null
-		unset download_link
-		[[ -v listing ]] && not_found=$(( $not_found + 1 ))
-		return
-	fi
-	filename=$(echo $download_link | sed 's:.*/::')
-	cd $destination
-	if [[ $(echo $filename) == "" ]]; then
-		if curl -L -s "$site/$doi" | grep -qi "article not found"; then
-			echo "${_YELLOW}Paper not available on Sci-Hub.${_RESET}"
+		filename=$(echo $download_link | sed 's:.*/::')
+		cd $destination
+		if [[ $(echo $filename) == "" ]]; then
+			if curl -L -s "$site/$doi" | grep -qi "article not found"; then
+				[[ ! $quiet = true ]] && echo "${_YELLOW}Paper not available on Sci-Hub.${_RESET}"
+			else
+				[[ ! $quiet = true ]] && echo -e "${_YELLOW}Paper not found.\nYour ISP might be restricting access to Sci-Hub. Use a VPN if possible.${_RESET}"
+				[[ "$listing" = false ]] && exit 1;
+			fi
 		else
-			echo "${_YELLOW}Paper not found.\\nPlease check if your country is not blocking access to Sci-Hub. Use a VPN if possible.${_RESET}"
-			[[ ! -v listing ]] && exit 1;
+			[[ ! $quiet = true ]] && echo "${_BOLD}Downloading ...${_RESET}"
+			[[ ! $quiet = true ]] && curl -L "$download_link" --output "$filename" --progress-bar
+			[[ $quiet = true ]] && curl -Ls "$download_link" --output "$filename" --progress-bar
+			[[ ! $quiet = true ]] && echo "${_GREEN}Done!${_RESET}"
+			rm "$scitopdf_curl".txt &>/dev/null
+			unset download_link
+			if [ "$automatically_open" = true ]; then
+				setsid $READER "$destination/$filename"
+			fi
+	#		exit 1;
 		fi
 	else
-		echo "${_BOLD}Downloading ...${_RESET}"
-		curl -L "$download_link" --output "$filename" --progress-bar
-		echo "${_GREEN}Done!${_RESET}"
-		rm "$scitopdf_curl".txt &>/dev/null
-		unset download_link
-		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $READER "$destination/$filename"
-		fi
-#		exit 1;
+		[[ ! $quiet = true ]] && echo "${_BOLD}Paper to search ${_RESET}[title, author, year, DOI, journal, URL...] : "
+		read concatenate
+		[[ $concatenate == "" ]] || paper_search
 	fi
-else
-	echo "${_BOLD}Paper to search ${_RESET}[title, author, year, DOI, journal, URL...] : "
-	read concatenate
-	[[ $concatenate == "" ]] || paper_search
-fi
 }
-
+	#-----------------------#
+	# Download bibliography #
+	#-----------------------#
 get_bibliography() {
-	automatically_open="no"
-	locate_website
+	if [[ ! -f "$bibliography_file" ]]; then
+		echo "Bibliography file not found. Trying something anyway."
+		listing=false
+		paper_search
+	fi
+	automatically_open=false
 	ref_index=0
 	not_found=0
 	while read line; do concatenate=$(echo $line);
-		if [[ "$concatenate" == "" ]]; then
-			continue
-		fi
+		[[ "$concatenate" == "" ]] && continue
 		ref_index=$(( ref_index + 1 )); paper_search "$line"; done < $bibliography_file
-	echo -e "${_YELLOW}\n>> End of file \"$bibliography_file\"${_RESET}"
-	[[ ! $not_found == 0 ]] && echo -e "${_YELLOW}$not_found out of $ref_index references not found.${_RESET}" # TODO list not found references
-	[[ $not_found == 0 ]] && echo -e "${_YELLOW}$ref_index out of $ref_index references found !${_RESET}"
+	[[ ! $quiet = true ]] && echo -e "${_YELLOW}\n>> End of file \"$bibliography_file\"${_RESET}"
+	[[ ! $quiet = true ]] && echo -e "${_YELLOW}$(( $ref_index - $not_found )) out of $ref_index references found !${_RESET}" # TODO -> indicate which were the not found references
 	exit 1
 
 }
@@ -233,49 +328,14 @@ get_bibliography() {
 ################
 # Start script #
 ################
-if [[ $listing == true ]]; then
-	get_bibliography
-else
-	# If no flag specified, concatenate given arguments for a single paper search.
-	args=("$@")
-	ELEMENTS=${#args[@]}
-	for (( i=0;i<$ELEMENTS;i++)); do
-		concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
-	done
-fi
-
-if [[ $(echo $concatenate | grep -io "http:") == "http:" ]]; then
-	locate_website
-	concatenate=$(echo $concatenate | sed "s/'//g ; s/\ //g" | sed 's/\\//g')
-	download_link="$(curl -L -s "$site/$concatenate" | grep -io "http.*\.pdf" | head -n 1)"
-	if [[ $(echo $download_link | cut -c1-2) == "//" ]]; then
-		download_link=$(echo $download_link | sed 's/\/\//https:\/\//g')
-	fi
-	filename=$(echo $download_link | sed 's:.*/::')
-	cd $destination
-	if [[ $(echo $filename) == "" ]]; then
-		echo -e "Paper not found. \nPlease be sure your country is not blocking access to Sci-Hub. \nUse a VPN if possible."
-		[[ ! -v listing ]] && exit;
-	else
-		echo "${_BOLD}Downloading ...${_RESET}"
-		curl -L "$download_link" --output "$filename" --progress-bar
-		echo "${_GREEN}Done!${_RESET}"
-		rm "$scitopdf_curl".txt &>/dev/null
-		unset download_link
-		if [ $(echo $automatically_open) = "yes" ]; then
-			setsid $READER "$destination/$filename"
-		fi
-	fi
-else
-	concatenate=$(echo $concatenate | sed 's/\\//g')
-	locate_website
-	site=$(echo $(cat "$sci_address"))
-	paper_search
-fi
-
-
+#check_net
+set_download_folder
+set_pdf_reader
+locate_website
+check_website
+[[ "$listing" = true ]] && get_bibliography
+paper_search
 exit
 
-# last modif : 2022 june 18
-# add flags : -q = no echo ; --download-only = no auto-opening ; -d --doi ; -u = url
-# make code proper/simpler : lot of redundancies
+# last modif : 2022 june 20
+# make code proper/simpler : lot of redundancies, incoherent formatting, ...

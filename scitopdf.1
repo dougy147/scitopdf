@@ -3,22 +3,44 @@
 scitopdf \- bash script to fetch, download and auto-open papers from Sci-Hub
 .SH SYNOPSIS
 .B scitopdf
-[ -l
-.I FILE_LIST
+[ \-l
+.I BIBLIOGRAPHY
 ]
 [
-.I TITLE
+.I PAPER_INFOS
 ]
+[ \-D
+.I DOWNLOAD_DIR
+]
+[ \-u
+.I URL
+]
+[ \-p ] [ \-q ]
 .SH DESCRIPTION
 .B scitopdf
-automatically downloads papers from Sci-Hub (website automatically found) based either on their title, url, author, date of publication (leveraging Crossref's search engine), or DOI.
+automatically downloads papers from Sci-Hub based on heterogeneous infos (title, URL, DOI, authors, year of publication...). Sci-Hub can be automatically located, and Crossref API helps pinpoint the right papers.
 .SH COMMANDS
 .TP
-.B -l
-or
-.B --list
-check multiple references inside a file to download them all (one reference by line)
-.SH AUTHORS
+.BI \-l\fP, \ \fB\-\-list \ \fB [FILE]
+check multiple references inside a file to download them all (one reference by line).
+.TP
+.BI \-D\fP, \ \fB \-\-download\-dir\ \fB [ABSOLUTE_PATH]
+manually set download directory. Only understands
+.B absolute paths
+for the moment.
+.TP
+.BI \-u\fP, \ \fB \-\-url\ \fB [URL]
+manually set Sci-Hub URL.
+.TP
+.BI \-p\fP, \ \fB \-\-no\-auto\-open
+avoid automatic opening of found papers.
+.TP
+.BI \-q\fP, \ \fB \-\-quiet
+silent mode. No echo.
+.TP
+.BI \-h\fP, \ \fB \-\-help
+display help and exit.
+.SH AUTHOR
 Written by dougy147 originally in 2020.
 .SH LICENSE
 GPLv3
