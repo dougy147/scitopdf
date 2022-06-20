@@ -48,6 +48,28 @@ scitopdf --list a_bibliography.txt
 
 - ROSA Linux (official repository) : `sudo dnf install scitopdf`
 
+## Adapt to your needs 😎
+
+> Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
+>
+> --<cite>Mary Poppins</cite>
+
+That goal is obviously not reached (too many OS 🤯, sad country restrictions 😥, coding skills deficit 📉...) but let's start somewhere!
+
+| Flag                       | Functionality                                             |
+|----------------------------|-----------------------------------------------------------|
+| **`-l`**, `--list`         | Download references line by line from a bibliography file |
+| **`-D`**, `--download-dir` | Store papers in a specified directory (absolute path)     |
+| **`-u`**, `--url`          | Manually set Sci-Hub address                              |
+| **`-p`**, `--no-auto-open` | Pass on auto-opening                                      |
+| **`-q`**, `--quiet`        | Quiet mode, no echo except for erros                      |
+| **`-h`**, `--help`         | Print this help menu                                      |
+| **`man scitopdf`           | Check the manual for more tweaks                          |
+
+- **Example** : `scitopdf -p "protein measurement with the folin" -q -D "$HOME/science"`
+
+## Some hints
+
 ### Papers are stored
 
 Papers are automatically saved to `$XDG_DOWNLOAD_DIR/scitopdf` (or `~/Downloads/scitopdf` depending on your system). You can change that default directory (pre-install) from the script itself (`./bin/scitopdf`).
@@ -84,25 +106,6 @@ If you're a typewriting kind of person and prefer it the old way, well, no judgm
 `scitopdf` reveals itself pretty cool too in the terminal, or when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
 
 Map this `search=$(printf "" | dmenu -p "Scitopdf") && scitopdf "$search"` to your favorite keys combo.
-
-### Adapt to your needs 😎
-
-> Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
-> --<cite>Mary Poppins</cite>
-
-That goal is obviously not reached (too many OS 🤯, sad country restrictions 😥, coding skills deficit 📉...) but let's start somewhere!
-
-| Flag                       | Functionality                                             |
-|----------------------------|-----------------------------------------------------------|
-| **`-l`**, `--list`         | Download references line by line from a bibliography file |
-| **`-D`**, `--download-dir` | Store papers in a specified directory (absolute path)     |
-| **`-u`**, `--url`          | Manually set Sci-Hub address                              |
-| **`-p`**, `--no-auto-open` | Pass on auto-opening                                      |
-| **`-q`**, `--quiet`        | Quiet mode, no echo except for erros                      |
-| **`-h`**, `--help`         | Print this help menu                                      |
-| **`man scitopdf`           | Check the manual for more tweaks                          |
-
-- **Example** : `scitopdf -p "protein measurement with the folin" -q -D "$HOME/science"`
 
 ## Instructions for the careless mind
 
