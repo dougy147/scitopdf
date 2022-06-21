@@ -74,28 +74,8 @@ scitopdf_curl="/tmp/scitopdf_curl" 	# store curl -L results here
 #############
 # Functions #
 #############
-#	#------------------#
-#	# Check connection #
-#	#------------------#
-#check_net() {
-#	# Quickly check internet connection
-#	if [[ $OSTYPE == 'darwin'* ]]; then
-#		[[ -z $(ping -q -t1 -c1 1.1.1.1) ]] && \
-#		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
-#		[[ $no_net_choice == "" || \
-#			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
-#	else
-#		[[ -z $(ping -q -w1 -c1 1.1.1.1) ]] && \
-#		read -p "No internet connection. Continue ? [y/N] " no_net_choice && \
-#		[[ $no_net_choice == "" || \
-#			! $(echo $no_net_choice | grep -io "y") == "y" ]] && exit 1
-#	fi
-#}
-	#-----------------#
-	# Download folder # #TODO -> Use a more "universal" method to pinpoint users download dir
-	#-----------------#
 set_download_folder() {
-	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD)}"
+	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD 2>/dev/null)}" # get rid of error messages when no xdg packages
 	[ ! -v destination ] && \
 		if [ -n "$XDG_DOWNLOAD_DIR" ]; then
 			destination="$XDG_DOWNLOAD_DIR/scitopdf"
@@ -112,32 +92,13 @@ set_download_folder() {
 	# Check PDF reader # #TODO -> Use a more "universal" method to identify default PDF application
 	#------------------#
 set_pdf_reader() {
-	# Find default PDF reader, else use zathura
+	# Find default PDF reader, else use zathura or give instructions
 	[ -v READER ] && return
-	# If xdg-mime available, ask for defaut PDF reader
-	if [[ $(command -v xdg-mime) ]]; then
-		DESKTOPFILE=$(xdg-mime query default application/pdf)
-		DESKTOPPATH="$HOME/.local/share/applications/"
-		[[ ! -f $DESKTOPPATH$DESKTOPFILE ]] && DESKTOPPATH="/usr/share/applications/"
-		[[ ! -f $DESKTOPPATH$DESKTOPFILE ]] && DESKTOPPATH="/usr/local/share/applications/"
-		EXECNAME=$(cat $DESKTOPPATH$DESKTOPFILE | grep ^Exec | cut -d '=' -f2 | cut -d ' ' -f 1 | head -n 1)
-		# For mad wine users ;) Keep in mind we're trying to set a "universal" handler!
-		[[ $(echo $EXECNAME | grep -io "wine") ]] && \
-			EXECNAME=$(cat $DESKTOPPATH$DESKTOPFILE | grep ^Exec | sed 's/^Exec=.*\.wine\"\ // ; s/\%f//') && \
-			wine=true && READER=$EXECNAME && return
-		READER=$(which $EXECNAME)
-		if ! [[ $(command -v "$READER") ]]; then
-			unset READER
-		else
-			return
-		fi
-	fi
+	# If xdg-open available, use it to call PDF reader.
+	[[ $(command -v xdg-open) ]] && READER=xdg-open && return
 	# If xdg-mime fails or doesn't exist, use or propose zathura
-	if [[ $(command -v zathura) ]]; then
-		READER=zathura
-	else
-		echo -e "No PDF reader.\nInstall zathura or try setting a READER environment variable.\nExample : 'export READER=your_pdf_reader'"
-	fi
+	[[ $(command -v zathura) ]] && READER=zathura && return
+	echo -e "Default PDF reader not found.\nInstall zathura or try setting a READER environment variable.\nExample : 'export READER=your_pdf_reader'"
 }
 	#-----------------#
 	# Rolling headers # Might not be that useful, Crossref is quite
@@ -328,7 +289,6 @@ get_bibliography() {
 ################
 # Start script #
 ################
-#check_net
 set_download_folder
 set_pdf_reader
 locate_website
@@ -337,5 +297,6 @@ check_website
 paper_search
 exit
 
-# last modif : 2022 june 20
+# last modif : 2022 june 21
 # make code proper/simpler : lot of redundancies, incoherent formatting, ...
+# recheck pages scrapping
