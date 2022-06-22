@@ -44,15 +44,15 @@ scitopdf --list a_bibliography.txt
 
 ### Also check your distro repos 👀
 
-- Arch Linux (AUR) : `yay -S scitopdf`
+- Arch Linux (AUR) : `yay -S scitopdf-git`
 
 - ROSA Linux (official repository) : `sudo dnf install scitopdf`
 
 ## Adapt to your needs !
 
-> Desired features for `scitopdf` are **{universali-flexibili-simplici}ty**.
+> Desired features for `scitopdf` are **{simplici-universali-flexibili}ty**.
 >
-> --<cite>Mary Poppins</cite>
+> -- <cite>Mary Poppins</cite>
 
 That goal is obviously not reached (too many OS 🤯, sad country restrictions 😥, coding skills deficit 📉...) but let's start somewhere!
 
