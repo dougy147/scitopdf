@@ -33,15 +33,6 @@ cd scitopdf
 sudo make install
 ```
 
-Now try :
-```
-scitopdf "some paper you're looking for"
-```
-or :
-```
-scitopdf --list a_bibliography.txt
-```
-
 ### Also check your distro repos 👀
 
 - Arch Linux (AUR) : `yay -S scitopdf-git`
@@ -50,7 +41,7 @@ scitopdf --list a_bibliography.txt
 
 ## Adapt to your needs !
 
-> Desired features for `scitopdf` are **{simplici-universali-flexibili}ty**.
+> Desired features for `scitopdf` are **{simplici-compatibili-flexibili}docious**.
 >
 > -- <cite>Mary Poppins</cite>
 
@@ -62,7 +53,7 @@ That goal is obviously not reached (too many OS 🤯, sad country restrictions �
 | `-D`, `--download-dir` | Store papers in a specified directory (absolute path)     |
 | `-u`, `--url`          | Manually set Sci-Hub address                              |
 | `-p`, `--no-auto-open` | Pass on auto-opening                                      |
-| `-q`, `--quiet`        | Quiet mode, no echo except for erros                      |
+| `-q`, `--quiet`        | Quiet mode, no `echo` except for errors                   |
 | `-h`, `--help`         | Print this help menu                                      |
 | `man scitopdf`           | Check the manual for more tweaks                          |
 
