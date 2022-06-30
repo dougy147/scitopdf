@@ -75,7 +75,8 @@ scitopdf_curl="/tmp/scitopdf_curl" 	# store curl -L results here
 # Functions #
 #############
 set_download_folder() {
-	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD 2>/dev/null)}" # get rid of error messages when no xdg packages
+	# Check system default download folder
+	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD 2>/dev/null)}"
 	[ ! -v destination ] && \
 		if [ -n "$XDG_DOWNLOAD_DIR" ]; then
 			destination="$XDG_DOWNLOAD_DIR/scitopdf"
@@ -104,6 +105,7 @@ set_pdf_reader() {
 	# Find Sci-Hub # make sure everyone can access SH easily.
 	#--------------# # TODO
 locate_website() {
+	# Check user URL if provided and return
 	[ -v user_url ] && \
 		if [[ ! $(echo "$user_url" | grep "https\?://") ]]; then
 			curl -s "https://$user_url" > /dev/null
@@ -115,15 +117,18 @@ locate_website() {
 						echo "${_RED}Wrong provided URL${_RESET}"
 						exit
 					fi
+					url_is_fine=true
 					site="$user_url" && return
 				fi
+				url_is_fine=true
 				site="http://$user_url" && return
 			fi
+			url_is_fine=true
 			site="https://$user_url" && return
 		else
+			url_is_fine=true
 			site="$user_url" && return
 		fi
-	url_is_fine=true
 	[[ -f "$sci_address" ]] && \
 		[[ ! $(cat "$sci_address") == "" ]] && \
 		site=$(cat "$sci_address") && \
@@ -194,7 +199,7 @@ search_crossref() {
 	#--------------------------#
 doi_search() {
 	if [[ -n "$doi" ]]; then
-		if [[ $(echo "$doi" | grep -io "doi:") = "doi:" || $(echo $doi | grep -io "doi\.") = "doi." ]]; then
+		if [[ $(echo "$doi" | grep -io "doi:") || $(echo $doi | grep -io "doi\.") ]]; then
 			doi=$(echo $doi | sed 's/http\?:\/\///' | grep -io "/.*" | sed "s/\///")
 			[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
 		fi
