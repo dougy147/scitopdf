@@ -55,7 +55,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 			\n -h : Print this help menu \
 			\n man scitopdf : Check the manual for more tweaks \
 			\n \
-			\n Example : scitopdf \"protein measurement with the folin\" -p -q -D \"$HOME/science\"" && exit 1
+			\n Example : scitopdf \"protein measurement with the folin\" -p -q -D \"$HOME/science\"" && exit 0
 	concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
 	[ -z "$automatically_open" ] && automatically_open=true
 done
@@ -115,7 +115,7 @@ locate_website() {
 					curl -s "$user_url" > /dev/null
 					if [ "$?" -eq 6 ]; then
 						echo "${_RED}Wrong provided URL${_RESET}"
-						exit
+						exit 1
 					fi
 					url_is_fine=true
 					site="$user_url" && return
@@ -206,7 +206,7 @@ doi_search() {
 		[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
 	else
 		[[ ! $quiet = true ]] && echo "${_RED}DOI not found.${_RESET}"
-		[[ "$listing" = false ]] && exit 1;
+		[[ "$listing" = false ]] && exit 2;
 	fi
 }
 	#----------------#
@@ -284,7 +284,7 @@ download_paper() {
 	fi
 	filename=$(echo "$download_link" | sed 's:.*/::')
 	if [[ -z "$filename" ]]; then
-		[[ "$listing" = false ]] && exit 1;
+		[[ "$listing" = false ]] && exit 3;
 		return
 	else
 		cd $destination
@@ -322,7 +322,7 @@ get_bibliography() {
 	done < $bibliography_file
 	[[ ! $quiet = true ]] && echo -e "${_YELLOW}\n>> End of file \"$bibliography_file\"${_RESET}"
 	[[ ! $quiet = true ]] && echo -e "${_YELLOW}$(( $ref_index - $not_found )) out of $ref_index references found !${_RESET}" # TODO -> give a list of "not found" references
-	exit 1
+	exit 0
 
 }
 
@@ -335,7 +335,11 @@ locate_website
 check_website
 [[ "$listing" = true ]] && get_bibliography
 paper_search
-exit
+exit 0
 
-# last modif : 2022 june 28
-# make code proper/simpler : lot of redundancies, incoherent formatting, spaghetti code...
+# last modif : 2022 august 13
+# exit codes :
+#	- 0 : success
+#	- 1 : wrong URL
+# 	- 2 : DOI not found
+#	- 3 : empty filename
