@@ -1,11 +1,4 @@
-```
-███████╗ ██████╗██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔════╝██╔════╝██║╚══██╔══╝██╔═══██╗██╔══██╗██╔══██╗██╔════╝
-███████╗██║     ██║   ██║   ██║   ██║██████╔╝██║  ██║█████╗
-╚════██║██║     ██║   ██║   ██║   ██║██╔═══╝ ██║  ██║██╔══╝
-███████║╚██████╗██║   ██║   ╚██████╔╝██║     ██████╔╝██║
-╚══════╝ ╚═════╝╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═════╝ ╚═╝
-```
+# scitopdf
 
 In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
@@ -27,7 +20,7 @@ If you really care about your disk space, don't install ! And try it like this :
 
 If 12KB is no problem to you, push your floppy diskette in, and follow those lines :
 
-```
+```console
 git clone https://github.com/dougy147/scitopdf
 cd scitopdf
 sudo make install
@@ -109,11 +102,8 @@ That way, it's unnecessary to say I'm only responsible for sharing a recipe one 
 So, illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, with and on your personal goods only.
 
-## Constructive critics are worth it
 
-Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
-
-### Thanks to contributors
+## Special thanks to contributors
 
 <a href="https://github.com/Phundrak">
   <img src="https://avatars.githubusercontent.com/u/1893080?v=4" width='50px'>
@@ -122,8 +112,11 @@ Don't just pass by, and help improve `scitopdf`. Pull requests are open $24/7$.
   <img src="https://avatars.githubusercontent.com/u/15802528?v=4" width='50px'>
 </a>
 
-## How did that help ?
 
-If you (1) are cool enough to know what to do with this 😎 and (2) find this program useful, I'd be glad and thankful :
+## Feel free 😎
 
-`bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
+If scitopdf has been of any help to you, I'd be glad and thankful !
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dougy147)
+
+BTC : `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
