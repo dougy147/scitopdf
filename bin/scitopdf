@@ -50,7 +50,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 			\n -l : Download references line by line from a bibliography file \
 			\n -D : Store papers in a specified directory (absolute path) \
 			\n -u : Manually set Sci-Hub address \
-			\n -p : Pass on auto-opening \
+			\n -p : Skip auto-opening \
 			\n -q : Quiet mode, no echo except for errors \
 			\n -h : Print this help menu \
 			\n man scitopdf : Check the manual for more tweaks \
@@ -74,6 +74,9 @@ scitopdf_curl="/tmp/scitopdf_curl" 	# store curl -L results here
 #############
 # Functions #
 #############
+	#-----------------------#
+	# Check download folder #
+	#-----------------------#
 set_download_folder() {
 	# Check system default download folder
 	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD 2>/dev/null)}"
@@ -86,8 +89,8 @@ set_download_folder() {
 	# Check download folder permissions
 	[ -d $destination ] || \
 		mkdir -p "$destination" &> /dev/null || \
-			( echo -e "${_BLUE}Can't access $destination. Please be sure you have permissions.\nPapers will be temporary saved to /tmp.${_RESET}" && \
-			destination="/tmp" )
+			( destination="/tmp" && \
+			echo -e "${_BLUE}Can't access $destination. Please be sure you have permissions.\nPapers will be temporary saved to /tmp.${_RESET}")
 }
 	#------------------#
 	# Check PDF reader #
@@ -149,7 +152,7 @@ check_website() {
 	curl -s "$site" > /dev/null
 	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
 		[[ ! $quiet = true ]] && echo -e "${_YELLOW}Sci-Hub not reachable. Checking alternatives.\nFor manual setting, use the --url option.${_RESET}"
-		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i https://sci-hub... | grep -i biglink | grep -io https://sci-hub... | head -n 1)
+		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i "https://sci-hub..." | grep -i "biglink" | grep -io "https://sci-hub..." | head -n 1)
 		[[ "$LANG" =~ ru_* ]] && site="${site/sci-hub.st/sci-hub.ru}"
 		check_website
 		return
@@ -231,7 +234,7 @@ paper_search() {
 			check_paper_found && return
 		fi
 		# 	>> IF USER_SEARCH CONTAINS "/" >> EITHER VALID URL (but previous test failed) or BADLY FORMATED URL or DOI
-		if [[ $(echo "$user_search" | grep -o "\/" | head -n 1) ]]; then
+		if [[ $(echo "$user_search" | grep -o "/" | head -n 1) ]]; then
 			download_link="$(curl -L -s "$site/$user_search" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\/// ; s/^\/\///')"
 			[[ -z "$download_link" ]] && \
 				download_link="$(curl -L -s "$user_search" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\/// ; s/^\/\///')"
@@ -323,7 +326,6 @@ get_bibliography() {
 	[[ ! $quiet = true ]] && echo -e "${_YELLOW}\n>> End of file \"$bibliography_file\"${_RESET}"
 	[[ ! $quiet = true ]] && echo -e "${_YELLOW}$(( $ref_index - $not_found )) out of $ref_index references found !${_RESET}" # TODO -> give a list of "not found" references
 	exit 0
-
 }
 
 ################
