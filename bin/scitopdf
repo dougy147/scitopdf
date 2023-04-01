@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 
+#set -xe
+
 # Preparing formatted outputs
 _RED=$(tput setaf 1)
 _GREEN=$(tput setaf 2)
@@ -16,7 +18,7 @@ _BOLD=$(tput bold)
 args=("$@")
 ELEMENTS=${#args[@]} # arguments number
 for (( i=0;i<$ELEMENTS;i++)); do
-	[[ -v pass_arg ]] && unset pass_arg && continue
+	[[ ! -z ${pass_arg+x} ]] && unset pass_arg && continue
 	[[ $(echo ${args[${i}]}) == "-l" || \
 		$(echo ${args[${i}]}) == "--list" ]] && \
 			pass_arg=true && \
@@ -80,7 +82,7 @@ scitopdf_curl="/tmp/scitopdf_curl" 	# store curl -L results here
 set_download_folder() {
 	# Check system default download folder
 	XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-$(xdg-user-dir DOWNLOAD 2>/dev/null)}"
-	[ ! -v destination ] && \
+	[ -z ${destination+x} ] && \
 		if [ -n "$XDG_DOWNLOAD_DIR" ]; then
 			destination="$XDG_DOWNLOAD_DIR/scitopdf"
 		else
@@ -97,7 +99,7 @@ set_download_folder() {
 	#------------------#
 set_pdf_reader() {
 	# Find default PDF reader, else use zathura or give instructions
-	[ -v READER ] && return
+	[ -n READER ] && return
 	# If xdg-open available, use it to call PDF reader.
 	[[ $(command -v xdg-open) ]] && READER=xdg-open && return
 	# If xdg-mime fails or doesn't exist, use or propose zathura
@@ -109,7 +111,7 @@ set_pdf_reader() {
 	#--------------# # TODO
 locate_website() {
 	# Check user URL if provided and return
-	[ -v user_url ] && \
+	[ ! -z ${user_url+x} ] && \
 		if [[ ! $(echo "$user_url" | grep "https\?://") ]]; then
 			curl -s "https://$user_url" > /dev/null
 			if [ "$?" -eq 6 ]; then
@@ -218,7 +220,7 @@ doi_search() {
 paper_search() {
 	change_headers
 	url_without_http=$(echo $site | sed 's/https\?:\/\///')
-	[[ ! -v automatically_open ]] && automatically_open=true
+	[[ -z ${automatically_open+x} ]] && automatically_open=true
 	if [[ -z "$concatenate" ]]; then
 		[[ ! $quiet = true ]] && echo "${_BOLD}Paper to search ${_RESET}[title, author, year, DOI, journal, URL...] : "
 		read concatenate
@@ -339,7 +341,7 @@ check_website
 paper_search
 exit 0
 
-# last modif : 2022 august 13
+# last modif : 2023 april 01
 # exit codes :
 #	- 0 : success
 #	- 1 : wrong URL
