@@ -12,11 +12,14 @@ Feed it with some infos about the paper, and 5 seconds later (maybe less... or m
 
 `scitopdf` recognizes URL and DOI when given, else it will process any info about the paper to find it : (trunkated) title || authors || journal || DOI || URL || year of publication || ...
 
-## Installation
+## Install
 
 If you really care about your disk space, don't install ! And try it like this :
 
-`curl https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf | bash -s 'your paper'`
+```console
+paper="the paper you are looking for"
+curl https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf | bash -s ${paper}
+```
 
 If 12KB is no problem to you, push your floppy diskette in, and follow those lines :
 
@@ -90,6 +93,10 @@ If you're a typewriting kind of person and prefer it the old way, well, no judgm
 `scitopdf` reveals itself pretty cool too in the terminal, or when combined with [`dmenu`](https://tools.suckless.org/dmenu/).
 
 Map this `search=$(printf "" | dmenu -p "Scitopdf") && scitopdf "$search"` to your favorite keys combo.
+
+### macOS compatibility
+
+macOS runs a dinosaur version of bash. But `scitopdf` won't allow its users to be left behind. That's why its code is meant to stay retro-compatible. How kind from this little script 😎!
 
 ## Instructions for the careless mind
 
