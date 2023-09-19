@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 
-#set -xe
+set -xe
 
 # Preparing formatted outputs
 _RED=$(tput setaf 1)
@@ -141,7 +141,7 @@ locate_website() {
 	[[ "$LANG" =~ ru_* ]] && \
 		site="https://sci-hub.ru" && \
 		return
-	site="https://sci-hub.st"
+	site="https://sci-hub.se"
 }
 	#---------------#
 	# Check website # #TODO -> Find best alternative methods
@@ -155,7 +155,7 @@ check_website() {
 	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
 		[[ ! $quiet = true ]] && echo -e "${_YELLOW}Sci-Hub not reachable. Checking alternatives.\nFor manual setting, use the --url option.${_RESET}"
 		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i "https://sci-hub..." | grep -i "biglink" | grep -io "https://sci-hub..." | head -n 1)
-		[[ "$LANG" =~ ru_* ]] && site="${site/sci-hub.st/sci-hub.ru}"
+		[[ "$LANG" =~ ru_* ]] && site="${site/sci-hub.se/sci-hub.ru}"
 		check_website
 		return
 	fi
