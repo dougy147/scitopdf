@@ -2,45 +2,39 @@
 .SH NAME
 scitopdf \- bash script to fetch, download and auto-open papers from Sci-Hub
 .SH SYNOPSIS
-.B scitopdf
-[ \-l
-.I BIBLIOGRAPHY
-]
-[
-.I PAPER_INFOS
-]
-[ \-D
-.I DOWNLOAD_DIR
-]
-[ \-u
-.I URL
-]
-[ \-p ] [ \-q ]
+\fBscitopdf\fP [\fItitle\fP|\fIyear\fP|\fIauthor\fP|...] ... [\fB-D\fP \fIdownload_dir\fP] [\fB-u\fP \fISH_URL\fP] [\fB-p\fP] [\fB-q\fP]
+.br
+\fBscitopdf\fP [\fB-l\fP \fIbibliography_file\fP] [\fB-q\fP]
 .SH DESCRIPTION
-.B scitopdf
-automatically downloads papers from Sci-Hub based on heterogeneous infos (title, URL, DOI, authors, year of publication...). Sci-Hub can be automatically located, and Crossref API helps pinpoint the right papers.
-.SH COMMANDS
+\fBscitopdf\fP automatically downloads papers from Sci-Hub based on heterogeneous and potentially incomplete informations (title, URL, DOI, authors, year of publication...). Sci-Hub URL can be specified or automatically located thanks to \fIhttps://sci-hub.now.sh\fP. Calls to \fIhttps://crossref.org\fP API to pinpoint the right paper are made when provided information to identify a paper is incomplete.
+.SH OPTIONS
 .TP
-.BI \-l\fP, \ \fB\-\-list \ \fB [FILE]
-check multiple references inside a file to download them all (one reference by line).
+.BI \-l\fP, \ \fB\-\-list \ \fB \fIbibliography_file\fP
+Download multiple papers referenced in a bibliography file. The bibliography file is any text file. Each reference to a paper in the bibliography file \fBmust\fP be placed on its own single line. A reference to a paper can be any information (title, DOI, etc.).
 .TP
-.BI \-D\fP, \ \fB \-\-download\-dir\ \fB [ABSOLUTE_PATH]
-manually set download directory. Only understands
-.B absolute paths
-for the moment.
+.BI \-D\fP, \ \fB \-\-download\-dir\ \fB \fIabsolute_download_dir_path\fP
+Manually set the download directory.
 .TP
-.BI \-u\fP, \ \fB \-\-url\ \fB [URL]
-manually set Sci-Hub URL.
+.BI \-u\fP, \ \fB \-\-url\ \fB \fIURL\fP
+Manually set Sci-Hub URL.
 .TP
 .BI \-p\fP, \ \fB \-\-no\-auto\-open
-avoid automatic opening of found papers.
+Skeep automatic opening of downloaded papers.
 .TP
 .BI \-q\fP, \ \fB \-\-quiet
-silent mode. No echo.
+Silent mode. Nothing displayed on stdout.
 .TP
 .BI \-h\fP, \ \fB \-\-help
-display help and exit.
-.SH AUTHOR
-Written by dougy147 originally in 2020.
+Display help and exit.
+.SH EXIT CODES
+0 \ Success.
+
+1 \ Error with the URL.
+
+2 \ DOI cannot be found.
+
+3 \ Paper filename is empty.
+.SH AUTHORS / CONTRIBUTORS
+dougy147 is the main author of \fBscitopdf\fP (originally written in 2020), but the other contributors are listed on the GitHub repository (https://github.com/dougy147/scitopdf).
 .SH LICENSE
 GPLv3

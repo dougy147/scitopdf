@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 
-#set -xe
+#set -x
 
 # Preparing formatted outputs
 _RED=$(tput setaf 1)
@@ -57,7 +57,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 			\n -h : Print this help menu \
 			\n man scitopdf : Check the manual for more tweaks \
 			\n \
-			\n Example : scitopdf \"protein measurement with the folin\" -p -q -D \"$HOME/science\"" && exit 0
+			\n Example : $0 \"protein measurement with the folin\" -p -q -D \"$HOME/science\"" && exit 0
 	concatenate=$(echo $concatenate" ")$(echo -n ${args[${i}]}"\ ")
 	[ -z "$automatically_open" ] && automatically_open=true
 done
@@ -138,13 +138,14 @@ locate_website() {
 		[[ ! $(cat "$sci_address") == "" ]] && \
 		site=$(cat "$sci_address") && \
 		return
+	# Use "known working" Sci-Hub URLs if no URL provided (adapt according to location/lang/..., send PR!)
 	[[ "$LANG" =~ ru_* ]] && \
 		site="https://sci-hub.ru" && \
 		return
 	site="https://sci-hub.se"
 }
 	#---------------#
-	# Check website # #TODO -> Find best alternative methods
+	# Check website # #TODO -> Find better alternatives
 	#---------------#
 check_website() {
 	[[ "$url_is_fine" = true ]] && \
@@ -154,10 +155,19 @@ check_website() {
 	curl -s "$site" > /dev/null
 	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
 		[[ ! $quiet = true ]] && echo -e "${_YELLOW}Sci-Hub not reachable. Checking alternatives.\nFor manual setting, use the --url option.${_RESET}"
-		site=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -i "https://sci-hub..." | grep -i "biglink" | grep -io "https://sci-hub..." | head -n 1)
-		[[ "$LANG" =~ ru_* ]] && site="${site/sci-hub.se/sci-hub.ru}"
-		check_website
-		return
+		# Rolling websites' list (scrapped from "sci-hub.now.sh")
+		if [[ $sites != "" ]]; then
+			sites=$(echo -e "${sites}" | sed '1d')
+			site=$(echo "${sites}" | head -n 1)
+			check_website
+			return
+		else
+			regex=">(https://sci.+)[^<]"
+			sites=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -Eo "$regex" | sed "s/>//;s/<.*//" )
+			site=$(echo "${sites}" | head -n 1)
+			check_website
+			return
+		fi
 	fi
 	echo "$site" > "$sci_address"
 }
@@ -341,9 +351,4 @@ check_website
 paper_search
 exit 0
 
-# last modif : 2023 april 01
-# exit codes :
-#	- 0 : success
-#	- 1 : wrong URL
-# 	- 2 : DOI not found
-#	- 3 : empty filename
+# last modif : 2023 november 09
