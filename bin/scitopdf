@@ -199,30 +199,11 @@ change_headers() {
 	#-------------------------#
 search_crossref() {
 	change_headers
-	if [[ $(echo $(curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" | tee "$scitopdf_curl".txt) | grep -io "$user_search" | head -n 1) == "$user_search" ]]; then
-		doi="$(grep -io "https\?://doi.*" "$scitopdf_curl".txt | grep -io "doi.*" | sed 's/https\?:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | sed  "s/['<>]//g" | head -n 2 | tail -n 1)"
-		doi_search
-		download_link="$(curl -L -s "$site/$doi" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
-		check_website_url_inside_link
-	else
-		[[ ! $quiet = true ]] && echo "${_YELLOW}User search not found on Crossref.${_RESET}"
-		return
-	fi
-}
-	#--------------------------#
-	# Look for DOI on Crossref #
-	#--------------------------#
-doi_search() {
-	if [[ -n "$doi" ]]; then
-		if [[ $(echo "$doi" | grep -io "doi:") || $(echo $doi | grep -io "doi\.") ]]; then
-			doi=$(echo $doi | sed 's/http\?:\/\///' | grep -io "/.*" | sed "s/\///")
-			[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
-		fi
-		[[ ! $quiet = true ]] && echo "${_BOLD}DOI: ${_RESET}$doi"
-	else
-		[[ ! $quiet = true ]] && echo "${_RED}DOI not found.${_RESET}"
-		[[ "$listing" = false ]] && exit 2;
-	fi
+	curl -A "$headers" -s "https://search.crossref.org/?q=$user_search&from_ui=yes" > "$scitopdf_curl".txt
+	doi=$(grep "var dois_list" "$scitopdf_curl".txt | sed -E "s/.*= '([^,]*).*/\1/") # get first DOI from "dois_list"
+	[[ -z ${doi} ]] && doi="$(grep -io "https\?://doi.*" "$scitopdf_curl".txt | grep -io "doi.*" | sed 's/https\?:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | sed  "s/['<>]//g" | head -n 2 | tail -n 1)"
+	download_link="$(curl -L -s "$site/$doi" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
+	check_website_url_inside_link
 }
 	#----------------#
 	# Look for paper #
