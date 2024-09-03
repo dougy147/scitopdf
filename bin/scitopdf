@@ -1,6 +1,13 @@
 #!/bin/bash
 
-set -ex
+#set -ex
+
+# NB: I patch up this script on the fly.
+#     There are a few redundancies, some
+#     incoherent formatting and oopsies.
+#     It could really benefit from clean
+#     up and contributions! Feel free :)
+#                   -- dougy147
 
 # Preparing formatted outputs
 _R=$(tput setaf 1) # red
@@ -49,7 +56,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
     if [[ "${args[${i}]}" == "--dns" ]]; then
 	    pass_arg=true
 	    index_dns=$(( i + 1 ))
-	    dns="${args[${index_dns}]}"
+	    user_dns="${args[${index_dns}]}"
 	    continue
     fi
     if [[ "${args[${i}]}" == "-p" || \
@@ -129,71 +136,74 @@ set_pdf_reader() {
 }
 
 change_dns() {
-    # Consider ISP blocks SH-similar requests, then always
-    # try resolving with DNS or true IP
-    if [ -z "$dns" ]; then
+    # Consider that ISP blocks requests, then
+    # always try resolving with DNS or true IP
+    if [ -z "$user_dns" ]; then
 	# TODO: why not grab result of nslookup somewhere on the web?
 	dns="186.2.163.219,186.2.163.201" # comma separated list of IPs (here current SH ips)
+    else
+	dns="$user_dns"
     fi
     if [[ ! ${quiet} = true ]]; then
 	echo -e "${_Y}[info] We have a hard time locating Sci-Hub.\nTrying to bypass your DNS settings.${_RST}"
     fi
+    url_without_http=$(sed 's/https\?:\/\///' <<< "${site}")
     if curl --dns-servers ${dns} 1.1.1.1 2>/dev/null; then
 	# Best option, but needs libcurl built with c-ares support.
 	curl_SH_opts="--dns-servers ${dns}"
     else
 	# Low success probability
-	curl_SH_opts="-k --resolve ${site:-*}:443:${dns} --resolve ${site:-*}:80:${dns}"
+	curl_SH_opts="-k --resolve ${url_without_http:-*}:443:${dns} --resolve ${url_without_http:-*}:80:${dns}"
     fi
 }
 
 # Locate Sci-Hub # make sure everyone can access SH easily.
 locate_website() {
-	# Check user URL if provided and return
-	if [ -n "${user_url+x}" ]; then
-	    if [[ ! $(grep "https\?://" <<< "${user_url}" ) ]]; then
-		curl -s ${curl_SH_opts} "https://${user_url}" > /dev/null
+    # Check user URL if provided and return
+    if [ -n "${user_url+x}" ]; then
+	if [[ ! $(grep "https\?://" <<< "${user_url}" ) ]]; then
+	    curl -s ${curl_SH_opts} "https://${user_url}" > /dev/null
+	    if [ "$?" -eq 6 ]; then
+		curl -s ${curl_SH_opts} "http://${user_url}" > /dev/null
 		if [ "$?" -eq 6 ]; then
-		    curl -s ${curl_SH_opts} "http://${user_url}" > /dev/null
+		    curl -s ${curl_SH_opts} "${user_url}" > /dev/null
 		    if [ "$?" -eq 6 ]; then
-			curl -s ${curl_SH_opts} "${user_url}" > /dev/null
-			if [ "$?" -eq 6 ]; then
-			    if [[ -z "${curl_SH_opts}" ]]; then
-				change_dns
-			        locate_website
-			        return
-			    else
-				echo "${_R}Wrong provided URL${_RST}"
-				exit 1
-			    fi
+			if [[ -z "${curl_SH_opts}" ]]; then
+			    change_dns
+			    locate_website
+			    return
+			else
+			    echo "${_R}Wrong provided URL${_RST}"
+			    exit 1
 			fi
-			url_is_fine=true
-			site="${user_url}" && return
 		    fi
 		    url_is_fine=true
-		    site="http://${user_url}" && return
+		    site="${user_url}" && return
 		fi
 		url_is_fine=true
-		site="https://${user_url}" && return
-	    else
-		url_is_fine=true
-		site="${user_url}" && return
+		site="http://${user_url}" && return
 	    fi
+	    url_is_fine=true
+	    site="https://${user_url}" && return
+	else
+	    url_is_fine=true
+	    site="${user_url}" && return
 	fi
-	if [[ -f "${sci_address}" ]] && [[ ! $(cat "${sci_address}") == "" ]]; then
-	    site=$(cat "${sci_address}")
-	    return
-	fi
-	# Use "known working" Sci-Hub URLs if no URL provided
-	# (adapt according to location/lang/..., send PR!)
-	# might need shopt -s extglob for pattern matching
-	case "${LANG}" in
-	    en_*) site="https://sci-hub.se";;
-	    fr_*) site="https://sci-hub.se";;
-	    ru_*) site="https://sci-hub.ru";;
-	    *) site="https://sci-hub.se";;
-	esac
+    fi
+    if [[ -f "${sci_address}" ]] && [[ ! $(cat "${sci_address}") == "" ]]; then
+	site=$(cat "${sci_address}")
 	return
+    fi
+    # Use "known working" Sci-Hub URLs if no URL provided
+    # (adapt according to location/lang/..., send PR!)
+    # might need shopt -s extglob for pattern matching
+    case "${LANG}" in
+	en_*) site="https://sci-hub.se";; # can somebody test?
+	fr_*) site="https://sci-hub.se";; # can somebody test?
+	ru_*) site="https://sci-hub.ru";; # can somebody test?
+	*) site="https://sci-hub.se";;
+    esac
+    return
 }
 
 # Check website
@@ -230,7 +240,7 @@ check_website() {
 	echo "${site}" > "${sci_address}"
 }
 
-# Rolling headers # Will probably drop this soon
+# Rolling headers (will probably drop this soon)
 change_headers() {
 	if [ ! -f "${headers_file}" ]; then
 	    touch "${headers_file}"
@@ -264,6 +274,48 @@ search_crossref() {
 	fi
 	download_link="$(curl ${curl_SH_opts} -L -s "${site}/${doi}" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\///;s/^\/\///;s/^\///')"
 	check_website_url_inside_link
+}
+
+# *New* search paper on libgen.li as last resort
+search_libgen() {
+    libgen="https://libgen.li"
+    libgen_no_prot="libgen.li"
+    if [ -z "$user_dns" ]; then
+	# TODO: why not grab result of nslookup somewhere on the web?
+	lg_dns="104.21.57.230,172.67.193.122" # comma separated list of IPs (here current Lib ips)
+    else
+	lg_dns="$user_dns"
+    fi
+    if curl --dns-servers ${lg_dns} 1.1.1.1 2>/dev/null; then
+	# Best option, but needs libcurl built with c-ares support.
+	curl_LG_opts="--dns-servers ${lg_dns}"
+    else
+	# Low success probability
+	curl_LG_opts="-k --resolve ${libgen_no_prot}:443:${lg_dns} --resolve ${libgen_no_prot}:80:${lg_dns}"
+    fi
+    result=$(curl $curl_LG_opts -s "${libgen}/index.php?req=${doi}" | grep -Eo "edition.php\?id=[^\"]*" | head -n1)
+    if [ -z $result ]; then
+	return 1
+    fi
+    link_step_1=$(curl $curl_LG_opts -s "${libgen}/${result}" | grep -Eo "ads.php\?md5=[^\"]*")
+    if [ -z $link_step_1 ]; then
+	return 1
+    fi
+    #link_step_2=$(curl $curl_LG_opts -s "${libgen}/${link_step_1}" | grep -Eo "get.php\?md5=[^\"]*")
+    full_last_page=$(curl $curl_LG_opts -s "${libgen}/${link_step_1}")
+    link_step_2=$(grep -Eo "get.php\?md5=[^\"]*" <<< "$full_last_page") # link
+
+    # need to check again how to extract correct metadatas
+    lg_author=$(grep -Eo "Author\(s\)\s*:\s*[^, ]*" <<< "$full_last_page" | \
+		sed -E "s/Author\(s\)\s*:\s*//" | \
+		tr 'A-Z' 'a-z') # author
+    lg_year=$(grep -Eo "Year\s*:\s*[[:digit:]]*" <<< "$full_last_page" | \
+	      sed -E "s/Year\s*:\s*//") # year
+    if [ -z $link_step_2 ]; then
+	return 1
+    fi
+    #curl $curl_LG_opts -L "${libgen}/${link_step_2}" -o paper.pdf
+    download_link="${libgen}/${link_step_2}"
 }
 
 # Look for paper #
@@ -338,9 +390,16 @@ paper_search() {
 			search_crossref
 			check_paper_found && return
 	    fi
+	    #   >> LAST RESORT: LIBGEN with DOI
+	    # As Crossref was used just before, DOI should be available
+	    if [[ -n "$doi" ]]; then
+		search_libgen
+	    	check_paper_found && return
+	    fi
+
 	    #	>> IF NOTHING WORKED :'(
 	    if [[ ! "${quiet}" = true ]]; then
-	        echo -e "${_R}[info] Paper not found.${_RST}"
+	        echo -e "${_R}[miss] Paper not found.${_RST}"
 	    fi
 	    if [[ "${listing}" = true ]]; then
 	        not_found=$(( not_found + 1 ))
@@ -349,17 +408,21 @@ paper_search() {
 	fi
 }
 
-#---------------------------------# Scrapped links can be trunkated. If true :
+#---------------------------------# Scrapped links can be truncated. If true :
 # Add $site link to download_link # transform '/download/article.pdf' to
 #---------------------------------# '${SH_URL}/download/article.pdf'
 check_website_url_inside_link() {
+    if [[ $(grep -Eio "^(https?://)?libgen.li" <<< "${download_link}") ]]; then
+	# Nothing to change in "download_link" if from libgen() function.
+	return
+    fi
     if ! [[ $(grep -io "${site}" <<< "${download_link}") || \
 	    $(grep -io "${url_without_http}" <<< "${download_link}") ]]; then
 	download_link="${site}/${download_link}"
     fi
 }
 
-# Check if paper is found #
+# Check if paper is found
 check_paper_found() {
 	download_paper
 	if [[ "${paper_found}" = true ]]; then
@@ -384,6 +447,10 @@ download_paper() {
 	    fi
 	    return
 	else
+	    if grep -q "get.php" <<< "$filename" ;then
+		# it comes from libgen.li
+		filename="${lg_author}${lg_year}.pdf"
+	    fi
 	    cd "${destination}" # || { echo "${_R}[error] Could not enter \"${destination}\".${_RST}"; exit 1; }
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_BOLD}Downloading ...${_RST}"
@@ -407,7 +474,7 @@ download_paper() {
 	fi
 }
 
-# Download bibliography #
+# Download bibliography
 get_bibliography() {
 	if [[ ! -f "${bibliography_file}" ]]; then
 	    echo "${_Y}Bibliography file not found. Trying something anyway.${_RST}"
@@ -449,7 +516,7 @@ get_bibliography() {
 ################
 set_download_folder
 set_pdf_reader
-if [[ -n "$dns" ]]; then
+if [[ -n "$user_dns" ]]; then
     change_dns
 fi
 locate_website
