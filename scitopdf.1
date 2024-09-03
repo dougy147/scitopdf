@@ -24,6 +24,9 @@ Skeep automatic opening of downloaded papers.
 .BI \-q\fP, \ \fB \-\-quiet
 Silent mode. Nothing displayed on stdout.
 .TP
+.BI \-\-dns \ \fB \fIip1,ip2,...\fP
+Experimental. Tries using \fBcurl\fP's \fI--dns-servers\fP option to bypass current DNS settings. But this needs \fBlibcurl\fP to be compiled with \fBc-ares\fP support. If not the case, uses \fBcurl\fP's \fI--resolve\fP option which has a much lower chance of success. DNS must be provided as a comma-separated list of IPs.
+.TP
 .BI \-h\fP, \ \fB \-\-help
 Display help and exit.
 .SH EXIT CODES

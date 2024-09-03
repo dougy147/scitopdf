@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -ex
+set -ex
 
 # Preparing formatted outputs
 _R=$(tput setaf 1) # red
@@ -46,6 +46,12 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	    user_url="${args[${index_user_url}]}"
 	    continue
     fi
+    if [[ "${args[${i}]}" == "--dns" ]]; then
+	    pass_arg=true
+	    index_dns=$(( i + 1 ))
+	    dns="${args[${index_dns}]}"
+	    continue
+    fi
     if [[ "${args[${i}]}" == "-p" || \
 	"${args[${i}]}" == "--no-auto-open" ]]; then
 	    automatically_open=false
@@ -88,6 +94,9 @@ headers_file="${tmp}/scitopdf_headers" 	# use different headers avoid(ish)ing bl
 sci_address="${tmp}/sci_address" 	# store SH address here
 scitopdf_curl="${tmp}/scitopdf_curl" 	# store curl -L results here
 
+# No option for curl at startup
+curl_SH_opts=""
+
 # Set/check download folder #
 set_download_folder() {
     # Check system default download folder
@@ -119,19 +128,44 @@ set_pdf_reader() {
 	echo -e "${_B}[info] Default PDF reader not found.\nInstall \"zathura\" or try setting a READER environment variable.\nExample : 'export READER=your_pdf_reader'"
 }
 
+change_dns() {
+    # Consider ISP blocks SH-similar requests, then always
+    # try resolving with DNS or true IP
+    if [ -z "$dns" ]; then
+	# TODO: why not grab result of nslookup somewhere on the web?
+	dns="186.2.163.219,186.2.163.201" # comma separated list of IPs (here current SH ips)
+    fi
+    if [[ ! ${quiet} = true ]]; then
+	echo -e "${_Y}[info] We have a hard time locating Sci-Hub.\nTrying to bypass your DNS settings.${_RST}"
+    fi
+    if curl --dns-servers ${dns} 1.1.1.1 2>/dev/null; then
+	# Best option, but needs libcurl built with c-ares support.
+	curl_SH_opts="--dns-servers ${dns}"
+    else
+	# Low success probability
+	curl_SH_opts="-k --resolve ${site:-*}:443:${dns} --resolve ${site:-*}:80:${dns}"
+    fi
+}
+
 # Locate Sci-Hub # make sure everyone can access SH easily.
 locate_website() {
 	# Check user URL if provided and return
 	if [ -n "${user_url+x}" ]; then
 	    if [[ ! $(grep "https\?://" <<< "${user_url}" ) ]]; then
-		curl -s "https://${user_url}" > /dev/null
+		curl -s ${curl_SH_opts} "https://${user_url}" > /dev/null
 		if [ "$?" -eq 6 ]; then
-		    curl -s "http://${user_url}" > /dev/null
+		    curl -s ${curl_SH_opts} "http://${user_url}" > /dev/null
 		    if [ "$?" -eq 6 ]; then
-			curl -s "${user_url}" > /dev/null
+			curl -s ${curl_SH_opts} "${user_url}" > /dev/null
 			if [ "$?" -eq 6 ]; then
+			    if [[ -z "${curl_SH_opts}" ]]; then
+				change_dns
+			        locate_website
+			        return
+			    else
 				echo "${_R}Wrong provided URL${_RST}"
 				exit 1
+			    fi
 			fi
 			url_is_fine=true
 			site="${user_url}" && return
@@ -154,25 +188,30 @@ locate_website() {
 	# (adapt according to location/lang/..., send PR!)
 	# might need shopt -s extglob for pattern matching
 	case "${LANG}" in
+	    en_*) site="https://sci-hub.se";;
+	    fr_*) site="https://sci-hub.se";;
 	    ru_*) site="https://sci-hub.ru";;
-	    en_*) site="http://sci-hub.se";;
-	    fr_*) site="http://sci-hub.se";;
 	    *) site="https://sci-hub.se";;
 	esac
 	return
 }
 
-# Check website # #TODO -> Find better alternatives
+# Check website
 check_website() {
 	if [[ "${url_is_fine}" = true ]]; then
 	    unset url_is_fine
 	    echo "${site}" > "${sci_address}"
 	    return
 	fi
-	curl -s "${site}" > /dev/null
+	curl -s ${curl_SH_opts} "${site}" > /dev/null
 	if [ "$?" -eq 6 ]; then # If curl cannot resolve, use last know website address
 		if [[ ! ${quiet} = true ]]; then
 		    echo -e "${_Y}[info] Sci-Hub not reachable. Checking alternatives.\nFor manual setting, use the --url option.${_RST}"
+		fi
+		if [[ -z "${curl_SH_opts}" ]]; then
+		    change_dns
+		    check_website
+		    return
 		fi
 		# Rolling websites' list (scrapped from "sci-hub.now.sh")
 		if [[ $sites != "" ]]; then
@@ -182,7 +221,7 @@ check_website() {
 		    return
 		else
 		    regex=">(https://sci.+)[^<]"
-		    sites=$(curl -s -LH "" "https://sci-hub.now.sh/" | grep -Eo "$regex" | sed "s/>//;s/<.*//" )
+		    sites=$(curl -s ${curl_SH_opts} -LH "" "https://sci-hub.now.sh/" | grep -Eo "$regex" | sed "s/>//;s/<.*//" )
 		    site=$(echo "${sites}" | head -n 1)
 		    check_website
 		    return
@@ -223,7 +262,7 @@ search_crossref() {
 	if [[ -z ${doi} ]]; then
 	    doi="$(grep -io "https\?://doi.*" "${scitopdf_curl}".txt | grep -io "doi.*" | sed 's/https\?:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | sed  "s/['<>]//g" | head -n 2 | tail -n 1)"
 	fi
-	download_link="$(curl -L -s "${site}/${doi}" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\///;s/^\/\///;s/^\///')"
+	download_link="$(curl ${curl_SH_opts} -L -s "${site}/${doi}" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\///;s/^\/\///;s/^\///')"
 	check_website_url_inside_link
 }
 
@@ -246,67 +285,67 @@ paper_search() {
 	    # 	>> IF USER_SEARCH IS A VALID URL
 	    if [[ $(grep -io "https\?://" <<< "${concatenate}") && ! $(grep -io "doi" <<< "${concatenate}") ]]; then
 		concatenate=$(sed "s/'//g ; s/\ //g" <<< "${concatenate}" | sed 's/\\//g')
-		download_link="$(curl -L -s "${concatenate}"           | \
+		download_link="$(curl -L -s ${curl_SH_opts} "${concatenate}"           | \
 				 grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 				 head -n 1                           | \
 				 sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
 		if [[ -z "${download_link}" ]]; then
-		    download_link="$(curl -L -s "${site}/${concatenate}"     | \
+		    download_link="$(curl -L -s ${curl_SH_opts} "${site}/${concatenate}"     | \
 				     grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 				     head -n 1                           | \
 				     sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
 		fi
 		check_paper_found && return
-		fi
-		# 	>> IF USER_SEARCH CONTAINS "/" >> EITHER VALID URL (but previous test failed) or BADLY FORMATED URL or DOI
-		if [[ $(grep -o "/" <<< "${user_search}" | head -n 1) ]]; then
-		    download_link="$(curl -L -s "${site}/${user_search}"     | \
-		    		 grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
+	    fi
+	    # 	>> IF USER_SEARCH CONTAINS "/" >> EITHER VALID URL (but previous test failed) or BADLY FORMATED URL or DOI
+	    if [[ $(grep -o "/" <<< "${user_search}" | head -n 1) ]]; then
+		download_link="$(curl -L -s ${curl_SH_opts} "${site}/${user_search}"     | \
+				 grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 		    		 head -n 1                           | \
 		    		 sed 's/^\/\/\/// ; s/^\/\///')"
-		    if [[ -z "${download_link}" ]]; then
-		        download_link="$(curl -L -s "${user_search}"           | \
-		    	             grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
+		if [[ -z "${download_link}" ]]; then
+		    download_link="$(curl -L -s ${curl_SH_opts} "${user_search}"           | \
+		   	             grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 		    		     head -n 1                           | \
 		    		     sed 's/^\/\/\/// ; s/^\/\///')"
-		    fi
-		    if [[ -z "${download_link}" ]]; then
-		        download_link="$(curl -L -s "https://${user_search}"   | \
+		fi
+	        if [[ -z "${download_link}" ]]; then
+	            download_link="$(curl -L -s ${curl_SH_opts} "https://${user_search}"   | \
 		    		     grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 		    		     head -n 1                           | \
 		    		     sed 's/^\/\/\/// ; s/^\/\///')"
-		    fi
-		    if [[ -z "${download_link}" ]]; then
-		        download_link="$(curl -L -s "http://${user_search}"    | \
+	        fi
+	        if [[ -z "${download_link}" ]]; then
+	            download_link="$(curl -L -s ${curl_SH_opts} "http://${user_search}"    | \
 		    		     grep -ioP "(?<=src=\")[^'\"]+?.pdf" | \
 		    		     head -n 1                           | \
 		    		     sed 's/^\/\/\/// ; s/^\/\///')"
-		    fi
-		    if [[ -z "${download_link}" ]]; then
-		        transform_to_doi=$(echo "${user_search}"                       | \
+	        fi
+	        if [[ -z "${download_link}" ]]; then
+	            transform_to_doi=$(echo "${user_search}"                       | \
 		    		       sed "s,$site/,, ; s,$url_without_http/,," | \
 		    		       sed 's/https\?:\/\///' | sed "s/doi.org\///" )
-		        download_link="$(curl -L -s "${site}/${transform_to_doi}" | \
+	            download_link="$(curl -L -s ${curl_SH_opts} "${site}/${transform_to_doi}" | \
 		    		     grep -ioP "(?<=src=\")[^'\"]+?.pdf"  | \
 		    		     head -n 1                            | \
 		    		     sed 's/^\/\/\/// ; s/^\/\///')"
-		    fi
-		    check_paper_found && return
 		fi
-		# 	>> SIMPLE USER SEARCH ; NOT A URL (might have a DOI in there) >> SEARCH ON CROSSREF
-		if [[ ! $(grep -io "https\?:" <<< "${user_search}") || \
-		        $(grep -io "doi" <<< "${user_search}") ]]; then
+		check_paper_found && return
+	    fi
+	    # 	>> SIMPLE USER SEARCH ; NOT A URL (might have a DOI in there) >> SEARCH ON CROSSREF
+	    if [[ ! $(grep -io "https\?:" <<< "${user_search}") || \
+	            $(grep -io "doi" <<< "${user_search}") ]]; then
 			search_crossref
 			check_paper_found && return
-		fi
-		#	>> IF NOTHING WORKED :'(
-		if [[ ! "${quiet}" = true ]]; then
-		    echo -e "${_R}[info] Paper not found.${_RST}"
-		fi
-		if [[ "${listing}" = true ]]; then
-		    not_found=$(( not_found + 1 ))
-		    missed+=($concatenate)
-		fi
+	    fi
+	    #	>> IF NOTHING WORKED :'(
+	    if [[ ! "${quiet}" = true ]]; then
+	        echo -e "${_R}[info] Paper not found.${_RST}"
+	    fi
+	    if [[ "${listing}" = true ]]; then
+	        not_found=$(( not_found + 1 ))
+	        missed+=($concatenate)
+	    fi
 	fi
 }
 
@@ -348,12 +387,12 @@ download_paper() {
 	    cd "${destination}" # || { echo "${_R}[error] Could not enter \"${destination}\".${_RST}"; exit 1; }
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_BOLD}Downloading ...${_RST}"
-		( curl -L "${download_link}" --output "${filename}" --progress-bar || \
-		  curl -L "${site}/${download_link}" --output "${filename}" )
+		( curl -L ${curl_SH_opts} "${download_link}" --output "${filename}" --progress-bar || \
+		  curl -L ${curl_SH_opts} "${site}/${download_link}" --output "${filename}" )
 	    fi
 	    if [[ ${quiet} = true ]]; then
-		( curl -Ls "${download_link}" --output "${filename}" || \
-		  curl -Ls "${site}/${download_link}" --output "${filename}" )
+		( curl -Ls ${curl_SH_opts} "${download_link}" --output "${filename}" || \
+		  curl -Ls ${curl_SH_opts} "${site}/${download_link}" --output "${filename}" )
 	    fi
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_G}Done!${_RST}"
@@ -410,6 +449,9 @@ get_bibliography() {
 ################
 set_download_folder
 set_pdf_reader
+if [[ -n "$dns" ]]; then
+    change_dns
+fi
 locate_website
 check_website
 if [[ "$listing" = true ]]; then
