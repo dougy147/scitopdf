@@ -33,7 +33,10 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	"${args[${i}]}" == "--download-dir" ]]; then
 	    pass_arg=true
 	    index_destination=$(( i + 1 ))
-	    destination="${args[${index_destination}]}"
+	    destination=$(realpath "${args[${index_destination}]}")
+	    if [ -z "$destination" ]; then
+		destination="${args[${index_destination}]}"
+	    fi
 	    continue
     fi
     if [[ "${args[${i}]}" == "-u" || \
