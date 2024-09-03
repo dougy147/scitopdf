@@ -1,16 +1,16 @@
 # scitopdf
 
-In general terms, `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
+`scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
-More specifically, but not enough, `scitopdf` quickly leverages Crossref search engine and Sci-Hub's database.
-
-Feed it with some infos about the paper, and 5 seconds later (maybe less... or more) it will **pop** in front of your eyes 👀.
+Feed it with whatever infos about a paper, count up to 5, and it will **pop** before your eyes 👀.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="80%" />
 </p>
 
-`scitopdf` recognizes URL and DOI when given, else it will process any info about the paper to find it : (trunkated) title || authors || journal || DOI || URL || year of publication || ...
+`scitopdf` quickly leverages Crossref search engine, Sci-Hub and 🆕Libgen databases.
+
+It recognizes URL and DOI when given, else it will process any info about the paper to find it : (truncated) title || authors || journal || DOI || URL || year of publication || ...
 
 ## Install
 
@@ -43,19 +43,20 @@ sudo make install
 
 That goal is obviously not reached (too many OS 🤯, sad country restrictions 😥, coding skills deficit 📉...) but let's start somewhere!
 
-| Flag                       | Functionality                                             |
-|----------------------------|-----------------------------------------------------------|
-| `-l`, `--list`         | Download references line by line from a bibliography file |
-| `-D`, `--download-dir` | Store papers in a specified directory (absolute path)     |
-| `-u`, `--url`          | Manually set Sci-Hub address                              |
-| `-p`, `--no-auto-open` | Pass on auto-opening                                      |
-| `-q`, `--quiet`        | Quiet mode, no `echo` except for errors                   |
-| `-h`, `--help`         | Print this help menu                                      |
-| `man scitopdf`           | Check the manual for more tweaks                          |
+| Flag                       | Functionality                                                 |
+|----------------------------|---------------------------------------------------------------|
+| `-l`, `--list`             | Download references line by line from a bibliography file     |
+| `-D`, `--download-dir`     | Store papers in a specified directory (absolute path)         |
+| `-u`, `--url`              | Manually set Sci-Hub address                                  |
+| `-p`, `--no-auto-open`     | Pass on auto-opening                                          |
+| `-q`, `--quiet`            | Quiet mode, no `echo` except for errors                       |
+| `--dns`                    | Experimental. Set your DNS to fetch SH. Check the `man` page. |
+| `-h`, `--help`             | Print this help menu                                          |
+| `man scitopdf`             | Check the manual for more tweaks                              |
 
 - **Example** : `scitopdf -p "protein measurement with the folin" -q -D "$HOME/science"`
 
-## Some hints
+## Some more details
 
 ### Papers are stored
 
@@ -100,13 +101,14 @@ macOS runs a dinosaur version of bash. But `scitopdf` won't allow its users to b
 
 ## Instructions for the careless mind
 
-Power is all relative, and this program's is pretty low; even quite harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, its use might be unappropriate in your country.
+I must release myself of any responsibility in the way you will use this program.
+Indeed, its use might be unappropriate in your country.
 
 As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
 If there's nothing wrong stacking, climbing the pile might.
-That way, it's unnecessary to say I'm only responsible for sharing a recipe one could find all the ingredients thanks to any search engine.
+So, I'm only responsible for sharing a recipe one could find all the ingredients with any search engine.
 
-So, illegality is not contained in that program. It can only be in its user's behavior.
+Illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, with and on your personal goods only.
 
 
