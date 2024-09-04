@@ -267,11 +267,13 @@ change_headers() {
 # User search on Crossref #
 search_crossref() {
 	change_headers
-	curl -A "${headers}" -s "https://search.crossref.org/?q=${user_search}&from_ui=yes" > "${scitopdf_curl}".txt
-	doi=$(grep "var dois_list" "${scitopdf_curl}".txt | sed -E "s/.*= '([^,]*).*/\1/") # get first DOI from "dois_list"
-	if [[ -z ${doi} ]]; then
-	    doi="$(grep -io "https\?://doi.*" "${scitopdf_curl}".txt | grep -io "doi.*" | sed 's/https\?:\/\///' | grep -io "/.*" | sed -e 's,/,,' -e 's,)$,,' | sed  "s/['<>]//g" | head -n 2 | tail -n 1)"
-	fi
+	# New mindful and kind way to ask Crossref (API) [consider first paper as match]
+	doi=$(curl -A "${headers}" -s "https://api.crossref.org/works?query.title=${user_search}" | \
+	      grep -Eo "\"DOI\"\s*:\s*\"[^\"]*" | \
+	      head -n 1 | \
+	      sed -E "s/\"DOI\"\s*:\s*\"//" | \
+	      sed 's_\\__')
+
 	download_link="$(curl ${curl_SH_opts} -L -s "${site}/${doi}" | grep -ioP "(?<=src=\")[^'\"]+?.pdf" | head -n 1 | sed 's/^\/\/\///;s/^\/\///;s/^\///')"
 	check_website_url_inside_link
 }
