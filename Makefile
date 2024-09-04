@@ -10,7 +10,7 @@ endif
 
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f scitopdf $(DESTDIR)$(PREFIX)/bin/
+	cp -f ./bin/scitopdf $(DESTDIR)$(PREFIX)/bin/
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/scitopdf
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f scitopdf.1 $(DESTDIR)$(MANPREFIX)/man1/scitopdf.1
