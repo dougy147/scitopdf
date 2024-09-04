@@ -18,7 +18,7 @@ If you really care about your disk space, don't install ! And try it like this :
 
 ```console
 paper="the paper you are looking for"
-curl https://raw.githubusercontent.com/dougy147/scitopdf/master/bin/scitopdf | bash -s ${paper}
+curl https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf | bash -s ${paper}
 ```
 
 If 12KB is no problem to you, push your floppy diskette in, and follow those lines :
@@ -60,7 +60,7 @@ That goal is obviously not reached (too many OS ðŸ¤¯, sad country restrictions ð
 
 ### Papers are stored
 
-Papers are automatically saved to `$XDG_DOWNLOAD_DIR/scitopdf` (or `~/Downloads/scitopdf` depending on your system). You can change that default directory (pre-install) from the script itself (`./bin/scitopdf`).
+Papers are automatically saved to `$XDG_DOWNLOAD_DIR/scitopdf` (or `~/Downloads/scitopdf` depending on your system). You can change that default directory (pre-install) from the script itself (`scitopdf`).
 
 ### Be sure you can read
 
