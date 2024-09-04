@@ -5,7 +5,7 @@
 Feed it with whatever infos about a paper, count up to 5, and it will **pop** before your eyes 👀.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/example.gif" width="80%" />
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/assets/example.gif" width="80%" />
 </p>
 
 `scitopdf` quickly leverages Crossref search engine, Sci-Hub and 🆕Libgen databases.
@@ -73,7 +73,7 @@ If you're very hungry for papers, you can auto-download multiple ones. Just give
 So, paste a bibliography in `bib.txt`, and `scitopdf -l bib.txt` will process each line and download every paper it finds (no auto-opening).
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_list.gif" width="80%" />
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/assets/example_bib_file.gif" width="80%" />
 </p>
 
 ### Don't waste time typing!
@@ -83,7 +83,7 @@ Map your favorite keys combination (I use `Super+S`) to `scitopdf $(xclip -o)` (
 Now, just highlight any title, DOI or URL you come accross, press your keys, and you're all set for a read.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/scitopdf_keyboard.gif" width="80%" />
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/assets/example_keyboard_shortcut.gif" width="80%" />
 </p>
 
 That's full speed accessing your papers now. Close enough from speed of thought 👍. (why am I selling that dumb script so much?)
