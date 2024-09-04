@@ -405,7 +405,8 @@ paper_search() {
 	    fi
 	    if [[ "${listing}" = true ]]; then
 	        not_found=$(( not_found + 1 ))
-	        missed+=($concatenate)
+		concatenate_no_space=$(sed "s/\ /%%space%%/g" <<< $concatenate)
+	        missed+=($concatenate_no_space)
 	    fi
 	fi
 }
@@ -504,7 +505,8 @@ get_bibliography() {
 		echo -e "${_R}[miss] Not found:${_RST}"
 		missing=${#missed[@]} # nb missed papers
 		for ((i=0;i<missing;i++)); do
-		    echo -e "\t${_R}- ${missed[${i}]}${_RST}"
+		    missed_rebuilt=$(sed "s/%%space%%/\ /g" <<< ${missed[${i}]})
+		    echo -e "\t${_R}- ${missed_rebuilt}${_RST}"
 		done
 	    else
 		echo -e "${_G}[done] ${ref_index}/${ref_index} papers found!${_RST}"
