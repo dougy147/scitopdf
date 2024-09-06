@@ -69,6 +69,46 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	    quiet=true
 	    continue
     fi
+    if [[ "${args[${i}]}" == "-w" || \
+	"${args[${i}]}" == "--wait" ]]; then
+	    pass_arg=true
+	    index_wait=$(( i + 1 ))
+	    wait_between_requests="${args[${index_wait}]}"
+	    if [ ! $(grep -E "^[[:digit:]]+(\.[[:digit:]]+)?$" <<< "$wait_between_requests") ]; then
+		echo "${_R}[ERROR] \"--wait\" only accepts integers or decimals (e.g. 1.5).${_RST}"
+		exit 1
+	    fi
+	    continue
+    fi
+    if [[ "${args[${i}]}" == "-b" || \
+	"${args[${i}]}" == "--break-after" ]]; then
+	    pass_arg=true
+	    index_break_after=$(( i + 1 ))
+	    break_after="${args[${index_break_after}]}"
+	    if [ ! $(grep -E "^[[:digit:]]+$" <<< "$break_after") ]; then
+		echo "${_R}[ERROR] \"--break-after\" only accepts integers.${_RST}"
+		exit 1
+	    fi
+	    if [ $break_after = 0 ]; then
+		unset break_after
+	    fi
+	    # set a default break duration in case not set
+	    if [ -z $break_for ]; then
+		break_for=15
+	    fi
+	    continue
+    fi
+    if [[ "${args[${i}]}" == "-d" || \
+	"${args[${i}]}" == "--break-for" ]]; then
+	    pass_arg=true
+	    index_break_for=$(( i + 1 ))
+	    break_for="${args[${index_break_for}]}"
+	    if [ ! $(grep -E "^[[:digit:]]+(\.[[:digit:]]+)?$" <<< "$break_for") ]; then
+		echo "${_R}[ERROR] \"--break-for\" only accepts integers or decimals (e.g. 1.5).${_RST}"
+		exit 1
+	    fi
+	    continue
+    fi
     if [[ "${args[${i}]}" == "-h" || \
 	"${args[${i}]}" == "--help" ]]; then
 	    echo -e "Help menu : \
@@ -497,6 +537,15 @@ get_bibliography() {
 		echo -e "\n${_BOLD}[Paper $ref_index]${_RST} ${_B}$line${_RST}";
 	    fi;
 	    paper_search "$line";
+	    if [ -n "${wait_between_requests}" ]; then
+		sleep $wait_between_requests
+	    fi
+	    if [[ -n $break_after && $(expr $(( ref_index )) % $break_after ) == 0 ]]; then
+		# if last line of bibliography file, don't sleep
+		if [[ $ref_index != $(wc -l "${bibliography_file}" | awk '{print $1}') ]]; then
+		    sleep $break_for
+		fi
+	    fi
 	done < "${bibliography_file}"
 	if [[ ! $quiet = true ]]; then
 	    echo -e "${_B}\n[info] Finished reading \"$bibliography_file\"${_RST}"
@@ -532,4 +581,4 @@ fi
 paper_search
 exit 0
 
-# last modif : 2024 september 04
+# last modif : 2024 september 06

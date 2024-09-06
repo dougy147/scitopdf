@@ -19,10 +19,19 @@ Manually set the download directory.
 Manually set Sci-Hub URL.
 .TP
 .BI \-p\fP, \ \fB \-\-no\-auto\-open
-Skeep automatic opening of downloaded papers.
+Skip automatic opening of downloaded papers.
 .TP
 .BI \-q\fP, \ \fB \-\-quiet
 Silent mode. Nothing displayed on stdout.
+.TP
+.BI \-w\fP, \ \fB\-\-wait \ \fB \fIseconds\fP
+Set the delay between two requests (in seconds). Accepts integers and decimals (e.g. "0.3" or "10"). Effective only when used in conjunction with \fB--list\fP.
+.TP
+.BI \-b\fP, \ \fB\-\-break-after \ \fB \fInb_requests\fP
+Make a break every chosen number of requests (integers only). Effective only when used in conjunction with \fB--list\fP. If \fB--break-for\fP is not set, default break duration value is 15 seconds.
+.TP
+.BI \-d\fP, \ \fB\-\-break-for \ \fB \fIseconds\fP
+Set the break duration (in seconds). Accepts integers and decimals (e.g. "0.3" or "10"). Effective only when used in conjunction with \fB--list\fP and \fB--break-after\fP.
 .TP
 .BI \-\-dns \ \fB \fIip1,ip2,...\fP
 Experimental. Tries using \fBcurl\fP's \fI--dns-servers\fP option to bypass current DNS settings. But this needs \fBlibcurl\fP to be compiled with \fBc-ares\fP support. If not the case, uses \fBcurl\fP's \fI--resolve\fP option which has a much lower chance of success. DNS must be provided as a comma-separated list of IPs.
@@ -38,6 +47,6 @@ Display help and exit.
 
 3 \ Paper filename is empty.
 .SH AUTHORS / CONTRIBUTORS
-dougy147 is the main author of \fBscitopdf\fP (originally written in 2020), but the other contributors are listed on the GitHub repository (https://github.com/dougy147/scitopdf).
+dougy147 is the main author of \fBscitopdf\fP (originally written in 2020). Contributors are thanked on the GitHub repository (\fIhttps://github.com/dougy147/scitopdf\fP).
 .SH LICENSE
 GPLv3
