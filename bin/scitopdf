@@ -113,6 +113,10 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	    menu="dmenu"
 	    continue
     fi
+    if [[ "${args[${i}]}" == "--ref" ]]; then
+	    bib_ref="true"
+	    continue
+    fi
     if [[ "${args[${i}]}" == "-h" || \
 	"${args[${i}]}" == "--help" ]]; then
 	    echo -e "Help menu : \
@@ -484,6 +488,12 @@ check_paper_found() {
 	return 1
 }
 
+get_ref() {
+    bibtex_ref=$(curl -s "http://api.crossref.org/works/$doi/transform/application/x-bibtex")
+    echo -e "\n${_B}$bibtex_ref${_RST}"
+    xclip -i <<< "$bibtex_ref"
+}
+
 # Check download_link and proceed #
 download_paper() {
 	check_website_url_inside_link
@@ -517,6 +527,9 @@ download_paper() {
 		echo "${_G}Done!${_RST}"
 	    fi
 	    rm "${scitopdf_curl}".txt &>/dev/null
+	    if [[ -n "$bib_ref" ]]; then
+		get_ref
+	    fi
 	    unset download_link
 	    if [[ "${automatically_open}" = true ]]; then
 		setsid "${READER}" "${destination}/${filename}"
