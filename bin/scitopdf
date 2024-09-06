@@ -268,7 +268,7 @@ change_headers() {
 search_crossref() {
 	change_headers
 	# New mindful and kind way to ask Crossref (API) [consider first paper as match]
-	doi=$(curl -A "${headers}" -s "https://api.crossref.org/works?query.title=${user_search}" | \
+	doi=$(curl -A "${headers}" -s "https://api.crossref.org/works?query=${user_search}" | \
 	      grep -Eo "\"DOI\"\s*:\s*\"[^\"]*" | \
 	      head -n 1 | \
 	      sed -E "s/\"DOI\"\s*:\s*\"//" | \
