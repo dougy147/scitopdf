@@ -109,6 +109,10 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	    fi
 	    continue
     fi
+    if [[ "${args[${i}]}" == "--dmenu" ]]; then
+	    menu="dmenu"
+	    continue
+    fi
     if [[ "${args[${i}]}" == "-h" || \
 	"${args[${i}]}" == "--help" ]]; then
 	    echo -e "Help menu : \
@@ -369,10 +373,14 @@ paper_search() {
 	    automatically_open=true
 	fi
 	if [[ -z "$concatenate" ]]; then
-	    if [[ ! $quiet = true ]]; then
-	        echo "${_BOLD}Search paper ${_RST}[title, author, year, DOI, journal, URL...] : "
+	    if [[ $menu == "dmenu" ]]; then
+		concatenate=$(printf "" | dmenu -i -p "Paper")
+	    else
+		if [[ ! $quiet = true ]]; then
+	    	    echo "${_BOLD}Search paper ${_RST}[title, author, year, DOI, journal, URL...] : "
+	    	fi
+	    	read -r concatenate
 	    fi
-	    read -r concatenate
 	    [[ ${concatenate} == "" ]] || paper_search
 	else
 	    init_user_search="${concatenate}"
