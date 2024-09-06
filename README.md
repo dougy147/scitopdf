@@ -54,6 +54,8 @@ That goal is obviously not reached (too many OS ðŸ¤¯, sad country restrictions ð
 | `-b`, `--break-after`      | Make a break every X paper search (for `--list` mode only)    |
 | `-d`, `--break-for`        | Break duration in seconds (for `--list` mode only)            |
 | `--dns`                    | Experimental. Set your DNS to fetch SH. Check the `man` page. |
+| `--ref`                    | Display BibTex references in terminal and copy to clipboard.  |
+| `--dmenu`                  | Display prompt with dmenu (more support and functions to come)|
 | `-h`, `--help`             | Print this help menu                                          |
 | `man scitopdf`             | Check the manual for more tweaks                              |
 
