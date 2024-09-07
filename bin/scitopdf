@@ -535,8 +535,10 @@ download_paper() {
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_G}Done!${_RST}"
 		# erase three lines above, then display text in green
-		echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}"
-		echo -e "${_BOLD}${_G}($ref_index/$bib_size)${_RST} ${_G}$adjusted_line${_RST}";
+		if [[ "$listing" = true ]]; then
+		    echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}"
+		    echo -e "${_BOLD}${_G}($ref_index/$bib_size)${_RST} ${_G}$adjusted_line${_RST}";
+		fi
 	    fi
 	    if [[ -n "$bib_ref" ]]; then
 		get_ref
