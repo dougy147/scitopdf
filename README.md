@@ -1,5 +1,3 @@
-# scitopdf
-
 `scitopdf` is a minimalist program for avid readers of scientific papers (that... I'm not).
 
 Feed it with whatever infos about a paper, count up to 5, and it will **pop** before your eyes 👀.
