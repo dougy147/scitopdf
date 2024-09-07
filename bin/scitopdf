@@ -10,15 +10,22 @@
 #                   -- dougy147
 
 # Preparing formatted outputs
-_R=$(tput setaf 1) # red
-_G=$(tput setaf 2) # green
-_Y=$(tput setaf 3) # yellow
-_B=$(tput setaf 4) # blue
-_M=$(tput setaf 5) # magenta
-_C=$(tput setaf 6) # cyan
-_W=$(tput setaf 7) # white
-_RST=$(tput sgr0)  # reset
-_BOLD=$(tput bold) # bold
+_BK=$(tput setaf 0) # black
+_R=$(tput setaf 1)  # red
+_G=$(tput setaf 2)  # green
+_Y=$(tput setaf 3)  # yellow
+_B=$(tput setaf 4)  # blue
+_M=$(tput setaf 5)  # magenta
+_C=$(tput setaf 6)  # cyan
+_W=$(tput setaf 7)  # white
+_RST=$(tput sgr0)   # reset
+_DIM=$(tput dim)    # dim
+_BOLD=$(tput bold)  # bold
+_ITAL=$(tput sitm)  # italic
+_UNDL=$(tput smul)  # underlined
+_BLNK=$(tput blink) # underlined
+_ERASE="\r\033[0K"  # cursor to EOL
+_ERASE_UP="\r\033[1A" #erase one line up
 
 # Check flags
 args=("$@")
@@ -453,9 +460,13 @@ paper_search() {
 
 	    #	>> IF NOTHING WORKED :'(
 	    if [[ ! "${quiet}" = true ]]; then
-	        echo -e "${_R}[miss] Paper not found.${_RST}"
+	        echo -e "${_R}Paper not found.${_RST}"
 	    fi
 	    if [[ "${listing}" = true ]]; then
+		if [[ ! "${quiet}" = true ]]; then
+		    echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}"
+		    echo -e "${_R}${_BOLD}($ref_index/$bib_size)${_RST} ${_BK}$adjusted_line${_RST}";
+		fi
 	        not_found=$(( not_found + 1 ))
 		concatenate_no_space=$(sed "s/\ /%%space%%/g" <<< $concatenate)
 	        missed+=($concatenate_no_space)
@@ -489,7 +500,7 @@ check_paper_found() {
 
 get_ref() {
     bibtex_ref=$(curl -s "http://api.crossref.org/works/$doi/transform/application/x-bibtex")
-    echo -e "\n${_B}$bibtex_ref${_RST}"
+    echo -e "\n${_BK}$bibtex_ref${_RST}\n"
     xclip -i <<< "$bibtex_ref"
 }
 
@@ -523,6 +534,9 @@ download_paper() {
 	    fi
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_G}Done!${_RST}"
+		# erase three lines above, then display text in green
+		echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}"
+		echo -e "${_BOLD}${_G}($ref_index/$bib_size)${_RST} ${_G}$adjusted_line${_RST}";
 	    fi
 	    if [[ -n "$bib_ref" ]]; then
 		get_ref
@@ -546,38 +560,79 @@ get_bibliography() {
 	automatically_open=false
 	ref_index=0
 	not_found=0
+	bib_size=$(wc -l "${bibliography_file}" | awk '{print $1}')
+	if [[ ! $quiet = true ]]; then
+	    echo ""
+	    echo -e "${_B}Searching for ${_BOLD}${_R}${bib_size}${_RST}${_B} references from file ${_R}\"${bibliography_file}\"${_RST}${_B}.${_RST}";
+	fi;
 	while read -r line; do
 	    concatenate="${line}";
 	    if [[ "$concatenate" == "" ]]; then
 		continue;
 	    fi;
 	    ref_index=$(( ref_index + 1 ));
+	    term_size=$(tput cols)
+	    if [ $(( ${#line} + ${#ref_index} + 3 + 1 )) -gt $term_size ]; then
+		adjusted_line="${line:0:$(( term_size - 3 - 1 - ${#ref_index} - ${#bib_size} - 3 ))}..."
+	    else
+		adjusted_line="${line}"
+	    fi
 	    if [[ ! $quiet = true ]]; then
-		echo -e "\n${_BOLD}[Paper $ref_index]${_RST} ${_B}$line${_RST}";
+		echo -e "${_BOLD}${_BK}($ref_index/$bib_size)${_RST} ${_BOLD}${_BK}$adjusted_line${_RST}";
 	    fi;
 	    paper_search "$line";
-	    if [ -n "${wait_between_requests}" ]; then
-		sleep $wait_between_requests
+	    if [[ -n "${wait_between_requests}" && $(expr $(( ref_index )) % $break_after) != 0 ]]; then
+		if [[ ! $quiet = true ]]; then
+		    c=$(sed "s/\..*//" <<< "$wait_between_requests")
+		    if [[ $c -ge 1 ]]; then
+			echo ""
+			for x in $(seq 0 $((c - 1))); do
+			    echo -e "${_ERASE_UP}${_ERASE_UP}"
+			    echo -e "${_DIM}${_ITAL}${_Y}\tWaiting $(( $c - $x )) seconds before next request...${_RST}";
+			    sleep 1
+			done
+			echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}"
+		    else
+			sleep $wait_between_requests
+		    fi
+		else
+		    sleep $wait_between_requests
+		fi
 	    fi
 	    if [[ -n $break_after && $(expr $(( ref_index )) % $break_after ) == 0 ]]; then
 		# if last line of bibliography file, don't sleep
-		if [[ $ref_index != $(wc -l "${bibliography_file}" | awk '{print $1}') ]]; then
-		    sleep $break_for
+		if [[ $ref_index != $bib_size ]]; then
+		    if [[ ! $quiet = true ]]; then
+			c=$(sed "s/\..*//" <<< "$break_for")
+			if [[ $c -ge 1 ]]; then
+			    echo ""
+			    for x in $(seq 0 $((c - 1)) ); do
+				echo -e "${_ERASE_UP}${_ERASE_UP}"
+				echo -e "\t${_DIM}${_BLNK}${_Y}[BREAK]${_RST}${_DIM}${_ITAL}${_Y} Waiting $(( $c - $x )) seconds before next batch...${_RST}";
+				sleep 1
+			    done
+			    echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}"
+			else
+			    sleep $break_for
+			fi
+		    else
+			sleep $break_for
+		    fi
 		fi
 	    fi
 	done < "${bibliography_file}"
 	if [[ ! $quiet = true ]]; then
-	    echo -e "${_B}\n[info] Finished reading \"$bibliography_file\"${_RST}"
+	    echo -e "${_B}\nFinished reading ${_R}\"$bibliography_file\"${_B}.${_RST}"
 	    if [ $not_found != "0" ]; then
-		echo -e "${_Y}[done] $(( ref_index - not_found ))/$ref_index papers found.${_RST}"
-		echo -e "${_R}[miss] Not found:${_RST}"
+		echo -e "${_Y}$(( ref_index - not_found ))/$ref_index papers found.${_RST}"
+		echo -e "${_R}Not found:${_RST}"
 		missing=${#missed[@]} # nb missed papers
 		for ((i=0;i<missing;i++)); do
 		    missed_rebuilt=$(sed "s/%%space%%/\ /g" <<< ${missed[${i}]})
 		    echo -e "\t${_R}- ${missed_rebuilt}${_RST}"
 		done
 	    else
-		echo -e "${_G}[done] ${ref_index}/${ref_index} papers found!${_RST}"
+		echo -e "${_G}${ref_index}/${ref_index} papers found!${_RST}"
 	    fi
 	fi
 	exit 0
@@ -600,4 +655,4 @@ fi
 paper_search
 exit 0
 
-# last modif : 2024 september 06
+# last modif : 2024 september 07
