@@ -144,10 +144,9 @@ fi
 
 # Declaring temporary files
 tmp="/tmp"
-touch "${tmp}/scitopdf_curl" || tmp="$(mktemp -d)"
+touch "${tmp}/scitopdf" && rm "${tmp}/scitopdf" || tmp="$(mktemp -d)"
 headers_file="${tmp}/scitopdf_headers" 	# use different headers avoid(ish)ing blocation
 sci_address="${tmp}/sci_address" 	# store SH address here
-scitopdf_curl="${tmp}/scitopdf_curl" 	# store curl -L results here
 
 # No option for curl at startup
 curl_SH_opts=""
@@ -498,7 +497,6 @@ get_ref() {
 download_paper() {
 	check_website_url_inside_link
 	if [[ ${download_link} = "" ]]; then
-		rm "${scitopdf_curl}".txt &>/dev/null
 		unset download_link
 		return
 	fi
@@ -526,7 +524,6 @@ download_paper() {
 	    if [[ ! "${quiet}" = true ]]; then
 		echo "${_G}Done!${_RST}"
 	    fi
-	    rm "${scitopdf_curl}".txt &>/dev/null
 	    if [[ -n "$bib_ref" ]]; then
 		get_ref
 	    fi
