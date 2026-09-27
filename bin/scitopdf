@@ -399,17 +399,28 @@ download_paper() {
         cd "$destination"
         if [[ $quiet != true ]]; then
             echo "${_BOLD}Downloading ...${_RST}"
-            ( curl -L "$download_link" --output "$filename" --progress-bar || \
-              curl -L "${site}/$download_link" --output "$filename" )
+            curl -L --connect-timeout 10 "$download_link" --output "$filename" --progress-bar
+        else
+            curl -Ls --connect-timeout 10 "$download_link" --output "$filename"
+        fi
+
+        # Reject HTML (captcha, error page, ...) saved in place of the paper
+        if [[ "$(head -c 4 "$filename" 2>/dev/null)" != "%PDF" ]]; then
+            rm -f "$filename"
+            if [[ $quiet != true && "$listing" != true ]]; then
+                echo "${_Y}Not a PDF: ${download_link}${_RST}"
+            fi
+            unset download_link
+            return
+        fi
+
+        if [[ $quiet != true ]]; then
             echo "${_G}Done!${_RST}"
             if [[ "$listing" == true ]]; then
                 # erase three lines above, then display text in green
                 echo -e "${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}${_ERASE}${_ERASE_UP}"
                 echo -e "${_G}${_BOLD}($ref_index/$bib_size)${_RST} ${_G}${adjusted_line}${_RST}";
             fi
-        else
-            ( curl -Ls "$download_link" --output "$filename" || \
-              curl -Ls "${site}/$download_link" --output "$filename" )
         fi
 
         if [[ -n "$bib_ref" ]]; then
