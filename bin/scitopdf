@@ -9,6 +9,37 @@
 #                   -- dougy147
 
 USER_AGENT="Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0"
+COOKIE_JAR="$(mktemp)"
+trap 'rm -f "$COOKIE_JAR"' EXIT
+
+# Fetch a page. If Sci-Hub answers with its "are you a robot?" page,
+# solve the ALTCHA proof-of-work (like the browser does) and fetch again.
+fetch_page() {
+    local response page effective_url base challenge_id challenge payload
+    response=$(curl -Ls --connect-timeout 10 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -w '\n%{url_effective}' "$1")
+    effective_url="${response##*$'\n'}"
+    page="${response%$'\n'*}"
+    challenge_id=$(grep -oP '/captcha/challenge/\K[0-9]+' <<< "$page" | head -n 1)
+    if [[ -n "$challenge_id" ]]; then
+        base=$(grep -oE '^https?://[^/]+' <<< "$effective_url")
+        challenge=$(curl -s --connect-timeout 10 -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${base}/captcha/challenge/${challenge_id}")
+        payload=$(perl -MDigest::SHA=sha256_hex -MMIME::Base64 -e '
+            my $json = shift;
+            my %c = map { $_ => ($json =~ /"$_":"?([^",}]*)/)[0] } qw(algorithm challenge maxNumber salt signature);
+            for my $n (0 .. $c{maxNumber}) {
+                next unless sha256_hex($c{salt} . $n) eq $c{challenge};
+                print encode_base64(sprintf(q({"algorithm":"%s","challenge":"%s","number":%d,"salt":"%s","signature":"%s","took":1}),
+                    @c{qw(algorithm challenge)}, $n, @c{qw(salt signature)}), "");
+                exit 0;
+            }
+            exit 1;' "$challenge") || { printf '%s\n' "$page"; return; }
+        curl -s --connect-timeout 10 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /dev/null \
+             -H 'Content-Type: application/json' -d "{\"captcha\":\"${payload}\"}" \
+             "${base}/captcha/solution/${challenge_id}"
+        page=$(curl -Ls --connect-timeout 10 -c "$COOKIE_JAR" -b "$COOKIE_JAR" "$effective_url")
+    fi
+    printf '%s\n' "$page"
+}
 
 # Read HTML on stdin, print the first link to a .pdf file
 extract_pdf_link() {
@@ -194,7 +225,7 @@ search_crossref() {
           sed -E "s/\"DOI\"\s*:\s*\"//"     | \
           sed 's_\\__')
 
-    download_link="$(curl -Ls --connect-timeout 10 "${site}/$doi" | extract_pdf_link)"
+    download_link="$(fetch_page "${site}/$doi" | extract_pdf_link)"
     check_website_url_inside_link
 }
 
@@ -254,27 +285,27 @@ paper_search() {
         # 	>> IF USER_SEARCH IS A VALID URL
         if [[ $concatenate =~ https?:// && ! $concatenate =~ doi ]]; then
             concatenate=$(sed "s/'//g ; s/\ //g" <<< "$concatenate" | sed 's/\\//g')
-            download_link="$(curl -Ls --connect-timeout 10 "$concatenate" | extract_pdf_link)"
+            download_link="$(fetch_page "$concatenate" | extract_pdf_link)"
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -Ls --connect-timeout 10 "${site}/${concatenate}" | extract_pdf_link)"
+                download_link="$(fetch_page "${site}/${concatenate}" | extract_pdf_link)"
             fi
             check_paper_found && return
         fi
 
         # 	>> IF USER_SEARCH CONTAINS "/" >> EITHER VALID URL (but previous test failed) or BADLY FORMATED URL or DOI
         if [[ $(grep -o "/" <<< "$user_search" | head -n 1) ]]; then
-            download_link="$(curl -Ls --connect-timeout 10 "${site}/${user_search}" | extract_pdf_link)"
+            download_link="$(fetch_page "${site}/${user_search}" | extract_pdf_link)"
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -Ls --connect-timeout 10 "${user_search}" | extract_pdf_link)"
+                download_link="$(fetch_page "${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -Ls --connect-timeout 10 "https://${user_search}" | extract_pdf_link)"
+                download_link="$(fetch_page "https://${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -Ls --connect-timeout 10 "http://${user_search}" | extract_pdf_link)"
+                download_link="$(fetch_page "http://${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
@@ -283,7 +314,7 @@ paper_search() {
                     sed 's/https\?:\/\///'                      | \
                     sed "s/doi.org\///" )
 
-                download_link="$(curl -Ls --connect-timeout 10 "${site}/${transform_to_doi}" | extract_pdf_link)"
+                download_link="$(fetch_page "${site}/${transform_to_doi}" | extract_pdf_link)"
             fi
 
             check_paper_found && return
