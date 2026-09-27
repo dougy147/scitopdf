@@ -10,6 +10,11 @@
 
 USER_AGENT="Mozilla/5.0 (x11; ubuntu; linux x86_64; rv:59.0) gecko/20100101 firefox/59.0"
 
+# Read HTML on stdin, print the first link to a .pdf file
+extract_pdf_link() {
+    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?\.pdf" | head -n 1
+}
+
 display_logo() {
     if [[ ! $quiet = true ]]; then
         echo "${_G}  ▄▀▀░▄▀▀░█░▀█▀░▄▀▄▒█▀▄░█▀▄▒█▀ "
@@ -189,10 +194,7 @@ search_crossref() {
           sed -E "s/\"DOI\"\s*:\s*\"//"     | \
           sed 's_\\__')
 
-    download_link="$(curl -L -s "${site}/$doi"                     | \
-                     grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf" | \
-                     head -n 1                                     | \
-                     sed 's/^\/\/\///;s/^\/\///;s/^\///')"
+    download_link="$(curl -Ls --connect-timeout 10 "${site}/$doi" | extract_pdf_link)"
     check_website_url_inside_link
 }
 
@@ -252,45 +254,27 @@ paper_search() {
         # 	>> IF USER_SEARCH IS A VALID URL
         if [[ $concatenate =~ https?:// && ! $concatenate =~ doi ]]; then
             concatenate=$(sed "s/'//g ; s/\ //g" <<< "$concatenate" | sed 's/\\//g')
-            download_link="$(curl -L -s "$concatenate"        | \
-                grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf" | \
-                head -n 1                                     | \
-                sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
+            download_link="$(curl -Ls --connect-timeout 10 "$concatenate" | extract_pdf_link)"
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -L -s "${site}/${concatenate}" | \
-                    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf"    | \
-                    head -n 1                                        | \
-                    sed 's/^\/\/\/// ; s/^\/\/// ; s/^\///')"
+                download_link="$(curl -Ls --connect-timeout 10 "${site}/${concatenate}" | extract_pdf_link)"
             fi
             check_paper_found && return
         fi
 
         # 	>> IF USER_SEARCH CONTAINS "/" >> EITHER VALID URL (but previous test failed) or BADLY FORMATED URL or DOI
         if [[ $(grep -o "/" <<< "$user_search" | head -n 1) ]]; then
-            download_link="$(curl -L -s "${site}/${user_search}" | \
-                grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf"    | \
-                head -n 1                                        | \
-                sed 's/^\/\/\/// ; s/^\/\///')"
+            download_link="$(curl -Ls --connect-timeout 10 "${site}/${user_search}" | extract_pdf_link)"
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -L -s "${user_search}"      | \
-                    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf" | \
-                    head -n 1                                     | \
-                    sed 's/^\/\/\/// ; s/^\/\///')"
+                download_link="$(curl -Ls --connect-timeout 10 "${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -L -s "https://${user_search}" | \
-                    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf"    | \
-                    head -n 1                                        | \
-                    sed 's/^\/\/\/// ; s/^\/\///')"
+                download_link="$(curl -Ls --connect-timeout 10 "https://${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
-                download_link="$(curl -L -s "http://${user_search}" | \
-                    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf"   | \
-                    head -n 1                                       | \
-                    sed 's/^\/\/\/// ; s/^\/\///')"
+                download_link="$(curl -Ls --connect-timeout 10 "http://${user_search}" | extract_pdf_link)"
             fi
 
             if [[ -z "${download_link}" ]]; then
@@ -299,10 +283,7 @@ paper_search() {
                     sed 's/https\?:\/\///'                      | \
                     sed "s/doi.org\///" )
 
-                download_link="$(curl -L -s "${site}/${transform_to_doi}" | \
-                    grep -ioP "(?<=(src|content|data\ )=\")[^'\"]+?.pdf"         | \
-                    head -n 1                                             | \
-                    sed 's/^\/\/\/// ; s/^\/\///')"
+                download_link="$(curl -Ls --connect-timeout 10 "${site}/${transform_to_doi}" | extract_pdf_link)"
             fi
 
             check_paper_found && return
@@ -343,9 +324,13 @@ check_website_url_inside_link() {
         return
     fi
 
-    if [[ ! $download_link =~ $site || ! $download_link =~ $url_without_http ]]; then
-        download_link="${site}/${download_link}"
-    fi
+    case "$download_link" in
+        "") ;;
+        http://*|https://*) ;;
+        //*) download_link="https:${download_link}" ;;
+        /*)  download_link="${site}${download_link}" ;;
+        *)   download_link="${site}/${download_link}" ;;
+    esac
 }
 
 check_paper_found() {
@@ -369,7 +354,7 @@ download_paper() {
         unset download_link
         return
     fi
-    filename=$(sed 's:.*/::' <<< "$download_link")
+    filename=$(sed 's:.*/::;s:[?#].*::' <<< "$download_link")
     if [[ -z "$filename" ]]; then
         if [[ "$listing" == false ]]; then
             exit 3
